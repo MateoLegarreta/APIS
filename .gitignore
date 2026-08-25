@@ -1,1 +1,17 @@
-.qodo
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# IDEs / editores
+.vs/
+.vscode/
+.idea/
+*.iml
+
+# Herramientas
+.qodo/
+
+# Java / Maven
+target/
+*.class
+*.log
