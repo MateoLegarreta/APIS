@@ -1,0 +1,27 @@
+package com.uade.tpo.demo.service;
+
+import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
+import com.uade.tpo.demo.entity.Product;
+import com.uade.tpo.demo.entity.dto.ProductRequest;
+import com.uade.tpo.demo.exceptions.CategoryNotFoundException;
+import com.uade.tpo.demo.exceptions.InvalidProductException;
+import com.uade.tpo.demo.exceptions.ProductNotFoundException;
+
+public interface ProductService {
+
+    public Page<Product> getProducts(PageRequest pageRequest);
+
+    public Optional<Product> getProductById(Long productId);
+
+    public Product createProduct(ProductRequest productRequest)
+            throws CategoryNotFoundException, InvalidProductException;
+
+    public Product updateProduct(Long productId, ProductRequest productRequest)
+            throws ProductNotFoundException, CategoryNotFoundException, InvalidProductException;
+
+    public void deleteProduct(Long productId) throws ProductNotFoundException;
+}
