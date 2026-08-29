@@ -8,11 +8,8 @@ import com.uade.tpo.demo.entity.Category;
 import com.uade.tpo.demo.entity.dto.CategoryRequest;
 import com.uade.tpo.demo.exceptions.CategoryDuplicateException;
 import com.uade.tpo.demo.service.CategoryService;
-import com.uade.tpo.demo.service.CategoryServiceImpl;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +20,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+
+import com.uade.tpo.demo.exceptions.CategoryNotFoundException;
+import com.uade.tpo.demo.exceptions.CategoryHasProductsException;
 
 @RestController
 @RequestMapping("categories")
@@ -46,7 +48,7 @@ public class CategoriesController {
         if (result.isPresent())
             return ResponseEntity.ok(result.get());
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.notFound().build();
     }
 
     @PostMapping
@@ -54,5 +56,21 @@ public class CategoriesController {
             throws CategoryDuplicateException {
         Category result = categoryService.createCategory(categoryRequest.getDescription());
         return ResponseEntity.created(URI.create("/categories/" + result.getId())).body(result);
+    }
+
+    @PutMapping("/{categoryId}")
+    public ResponseEntity<Category> updateCategory(
+            @PathVariable Long categoryId,
+            @RequestBody CategoryRequest categoryRequest)
+            throws CategoryDuplicateException, CategoryNotFoundException {
+        Category result = categoryService.updateCategory(categoryId, categoryRequest.getDescription());
+        return ResponseEntity.ok(result);
+    }
+
+    @DeleteMapping("/{categoryId}")
+    public ResponseEntity<Void> deleteCategory(@PathVariable Long categoryId)
+            throws CategoryNotFoundException, CategoryHasProductsException {
+        categoryService.deleteCategory(categoryId);
+        return ResponseEntity.noContent().build();
     }
 }

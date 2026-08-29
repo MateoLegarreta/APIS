@@ -7,5 +7,5 @@ import com.uade.tpo.demo.entity.Product;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
-
+  boolean existsByCategoryId(Long categoryId);
 }
