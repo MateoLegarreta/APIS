@@ -33,8 +33,10 @@ public class ProductsController {
 
     @GetMapping
     public ResponseEntity<Page<Product>> getProducts(
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "20") Integer size) {
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
+        if (page == null || size == null)
+            return ResponseEntity.ok(productService.getProducts(PageRequest.of(0, Integer.MAX_VALUE)));
         return ResponseEntity.ok(productService.getProducts(PageRequest.of(page, size)));
     }
 
