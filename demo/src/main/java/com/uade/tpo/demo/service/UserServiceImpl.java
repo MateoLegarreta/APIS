@@ -36,7 +36,11 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsByEmail(userRequest.getEmail()))
             throw new UserDuplicateException();
 
-        return userRepository.save(new User(userRequest.getEmail(), userRequest.getName(), userRequest.getSurname()));
+        return userRepository.save(User.builder()
+                .email(userRequest.getEmail())
+                .name(userRequest.getName())
+                .surname(userRequest.getSurname())
+                .build());
     }
 
     public User updateUser(Long userId, UserRequest userRequest)
