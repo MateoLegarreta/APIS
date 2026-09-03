@@ -15,7 +15,8 @@ import com.uade.tpo.demo.exceptions.ProductNotFoundException;
 
 public interface ProductService {
 
-    public Page<Product> getProducts(PageRequest pageRequest);
+    public Page<Product> getProducts(PageRequest pageRequest, Long categoryId,
+            String name, Double priceMin, Double priceMax);
 
     public Optional<Product> getProductById(Long productId);
 

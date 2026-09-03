@@ -36,10 +36,18 @@ public class ProductsController {
     @GetMapping
     public ResponseEntity<Page<Product>> getProducts(
             @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size) {
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Double priceMin,
+            @RequestParam(required = false) Double priceMax) {
+
         if (page == null || size == null)
-            return ResponseEntity.ok(productService.getProducts(PageRequest.of(0, Integer.MAX_VALUE)));
-        return ResponseEntity.ok(productService.getProducts(PageRequest.of(page, size)));
+            return ResponseEntity.ok(productService.getProducts(
+                    PageRequest.of(0, Integer.MAX_VALUE), categoryId, name, priceMin, priceMax));
+
+        return ResponseEntity.ok(productService.getProducts(
+                PageRequest.of(page, size), categoryId, name, priceMin, priceMax));
     }
 
     @GetMapping("/{productId}")

@@ -28,8 +28,9 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    public Page<Product> getProducts(PageRequest pageRequest) {
-        return productRepository.findAll(pageRequest);
+    public Page<Product> getProducts(PageRequest pageRequest, Long categoryId,
+        String name, Double priceMin, Double priceMax) {
+    return productRepository.search(categoryId, name, priceMin, priceMax, pageRequest);
     }
 
     public Optional<Product> getProductById(Long productId) {
