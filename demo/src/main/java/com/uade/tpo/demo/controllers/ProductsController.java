@@ -21,8 +21,10 @@ import com.uade.tpo.demo.entity.Product;
 import com.uade.tpo.demo.entity.dto.ProductRequest;
 import com.uade.tpo.demo.exceptions.CategoryNotFoundException;
 import com.uade.tpo.demo.exceptions.InvalidProductException;
+import com.uade.tpo.demo.exceptions.NotProductOwnerException;
 import com.uade.tpo.demo.exceptions.ProductNotFoundException;
 import com.uade.tpo.demo.service.ProductService;
+
 
 @RestController
 @RequestMapping("products")
@@ -60,13 +62,13 @@ public class ProductsController {
     public ResponseEntity<Product> updateProduct(
             @PathVariable Long productId,
             @RequestBody ProductRequest productRequest)
-            throws ProductNotFoundException, CategoryNotFoundException, InvalidProductException {
+            throws ProductNotFoundException, CategoryNotFoundException, InvalidProductException, NotProductOwnerException {
         return ResponseEntity.ok(productService.updateProduct(productId, productRequest));
     }
 
     @DeleteMapping("/{productId}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long productId)
-            throws ProductNotFoundException {
+            throws ProductNotFoundException, NotProductOwnerException {
         productService.deleteProduct(productId);
         return ResponseEntity.noContent().build();
     }

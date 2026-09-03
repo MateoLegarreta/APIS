@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Transient;
 import lombok.Data;
 
 @Data
@@ -27,9 +28,23 @@ public class Product {
     private Double price;
 
     @Column(nullable = false)
+    private Double discountPercentage = 0.0;
+
+    @Column(nullable = false)
     private Integer stock;
 
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
+
+    @ManyToOne
+    @JoinColumn(name = "seller_id", nullable = false)
+    private User seller;
+
+    @Transient
+    public Double getFinalPrice() {
+        if (discountPercentage == null)
+            return price;
+        return price * (1 - discountPercentage / 100);
+    }
 }

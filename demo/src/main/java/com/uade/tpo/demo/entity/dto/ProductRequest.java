@@ -9,4 +9,5 @@ public class ProductRequest {
     private Double price;
     private Integer stock;
     private Long categoryId;
+    private Double discountPercentage;
 }

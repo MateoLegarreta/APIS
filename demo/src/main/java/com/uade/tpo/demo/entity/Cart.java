@@ -37,7 +37,7 @@ public class Cart {
         if (items == null)
             return 0.0;
         return items.stream()
-                .mapToDouble(item -> item.getProduct().getPrice() * item.getQuantity())
+                .mapToDouble(item -> item.getProduct().getFinalPrice() * item.getQuantity())
                 .sum();
     }
 }

@@ -164,10 +164,10 @@ public class CartServiceImpl implements CartService {
             orderItem.setOrder(order);
             orderItem.setProduct(product);
             orderItem.setQuantity(item.getQuantity());
-            orderItem.setUnitPrice(product.getPrice());
+            orderItem.setUnitPrice(product.getFinalPrice());
             order.getItems().add(orderItem);
 
-            total += product.getPrice() * item.getQuantity();
+            total += product.getFinalPrice() * item.getQuantity();
         }
         order.setTotal(total);
 

@@ -9,7 +9,9 @@ import com.uade.tpo.demo.entity.Product;
 import com.uade.tpo.demo.entity.dto.ProductRequest;
 import com.uade.tpo.demo.exceptions.CategoryNotFoundException;
 import com.uade.tpo.demo.exceptions.InvalidProductException;
+import com.uade.tpo.demo.exceptions.NotProductOwnerException;
 import com.uade.tpo.demo.exceptions.ProductNotFoundException;
+
 
 public interface ProductService {
 
@@ -21,7 +23,7 @@ public interface ProductService {
             throws CategoryNotFoundException, InvalidProductException;
 
     public Product updateProduct(Long productId, ProductRequest productRequest)
-            throws ProductNotFoundException, CategoryNotFoundException, InvalidProductException;
+            throws ProductNotFoundException, CategoryNotFoundException, InvalidProductException, NotProductOwnerException;
 
-    public void deleteProduct(Long productId) throws ProductNotFoundException;
+    public void deleteProduct(Long productId) throws ProductNotFoundException, NotProductOwnerException;
 }
