@@ -4,11 +4,12 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.uade.tpo.demo.entity.Order;
 import com.uade.tpo.demo.exceptions.NotOrderOwnerException;
 import com.uade.tpo.demo.exceptions.OrderNotFoundException;
@@ -32,5 +33,11 @@ public class OrdersController {
     public ResponseEntity<Order> getMyOrderById(@PathVariable Long orderId)
             throws OrderNotFoundException, NotOrderOwnerException {
         return ResponseEntity.ok(orderService.getMyOrderById(orderId));
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN','SELLER')")
+    @GetMapping("/all")
+    public ResponseEntity<List<Order>> getAllOrders() {
+        return ResponseEntity.ok(orderService.getAllOrders());
     }
 }

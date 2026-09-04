@@ -10,6 +10,7 @@ import com.uade.tpo.demo.exceptions.OrderNotFoundException;
 public interface OrderService {
 
     public List<Order> getMyOrders();
+    public List<Order> getAllOrders();
 
     public Order getMyOrderById(Long orderId)
             throws OrderNotFoundException, NotOrderOwnerException;

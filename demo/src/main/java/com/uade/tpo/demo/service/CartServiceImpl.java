@@ -55,6 +55,7 @@ public class CartServiceImpl implements CartService {
             throw new InvalidQuantityException();
 
         Product product = productRepository.findById(productId)
+                .filter(p -> Boolean.TRUE.equals(p.getActive()))
                 .orElseThrow(ProductNotFoundException::new);
 
         Cart cart = getOrCreateCart(userId);

@@ -36,6 +36,6 @@ public class CartItem {
     public Double getSubtotal() {
         if (product == null || quantity == null)
             return 0.0;
-        return product.getPrice() * quantity;
+        return product.getFinalPrice() * quantity;
     }
 }

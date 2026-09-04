@@ -54,4 +54,8 @@ public class OrderServiceImpl implements OrderService {
                 .getAuthentication()
                 .getPrincipal();
     }
+
+    public List<Order> getAllOrders(){
+        return orderRepository.findAll();
+    }
 }
