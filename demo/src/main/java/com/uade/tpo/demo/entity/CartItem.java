@@ -11,6 +11,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Transient;
 import lombok.Data;
 
+// Un producto puntual dentro de un carrito, con la cantidad elegida
 @Data
 @Entity
 public class CartItem {
@@ -30,6 +31,7 @@ public class CartItem {
 
     private Integer quantity;
 
+    // Precio del producto multiplicado por la cantidad, no se guarda en la base
     @Transient
     public Double getSubtotal() {
         if (product == null || quantity == null)

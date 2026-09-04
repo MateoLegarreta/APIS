@@ -12,6 +12,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Transient;
 import lombok.Data;
 
+// Un producto puntual dentro de un pedido ya confirmado
 @Data
 @Entity
 public class OrderItem {

@@ -11,6 +11,7 @@ import com.uade.tpo.demo.exceptions.CategoryDuplicateException;
 import com.uade.tpo.demo.exceptions.CategoryNotFoundException;
 import com.uade.tpo.demo.exceptions.CategoryHasProductsException;
 
+// Todas las operaciones que se pueden hacer con las categorias
 public interface CategoryService {
     public Page<Category> getCategories(PageRequest pageRequest);
 

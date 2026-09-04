@@ -9,6 +9,7 @@ import com.uade.tpo.demo.exceptions.InsufficientStockException;
 import com.uade.tpo.demo.exceptions.InvalidQuantityException;
 import com.uade.tpo.demo.exceptions.ProductNotFoundException;
 
+// Todas las operaciones que se pueden hacer con el carrito de compras
 public interface CartService {
 
     public Cart getCartByUser(Long userId);

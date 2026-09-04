@@ -11,11 +11,15 @@ import com.uade.tpo.demo.entity.Product;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
+  // Dice si una categoria tiene al menos un producto
   boolean existsByCategoryId(Long categoryId);
 
+        // Busca productos filtrando por categoria, nombre y rango de precio, todos opcionales.
+    // Solo devuelve los que estan dados de alta
     @Query("""
             select p from Product p
-            where (:categoryId is null or p.category.id = :categoryId)
+            where p.active = true
+              and (:categoryId is null or p.category.id = :categoryId)
               and (:name is null or lower(p.name) like lower(concat('%', :name, '%')))
               and (:priceMin is null or p.price * (1 - p.discountPercentage / 100) >= :priceMin)
               and (:priceMax is null or p.price * (1 - p.discountPercentage / 100) <= :priceMax)

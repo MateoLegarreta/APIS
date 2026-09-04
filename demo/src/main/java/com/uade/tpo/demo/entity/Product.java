@@ -10,6 +10,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Transient;
 import lombok.Data;
 
+// Un producto que se puede comprar, con su precio, stock y descuento
 @Data
 @Entity
 public class Product {
@@ -41,6 +42,10 @@ public class Product {
     @JoinColumn(name = "seller_id", nullable = false)
     private User seller;
 
+    @Column(nullable = false)
+    private Boolean active = true;
+
+    // Precio ya con el descuento aplicado, no se guarda en la base
     @Transient
     public Double getFinalPrice() {
         if (discountPercentage == null)

@@ -14,6 +14,7 @@ import com.uade.tpo.demo.exceptions.UserDuplicateException;
 import com.uade.tpo.demo.exceptions.UserNotFoundException;
 import com.uade.tpo.demo.repository.UserRepository;
 
+// Maneja la administracion de usuarios: listarlos, editarlos y borrarlos
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -21,15 +22,16 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
 
     public Page<User> getUsers(PageRequest pageRequest) {
-      
+
         return userRepository.findAll(pageRequest);
     }
 
     public Optional<User> getUserById(Long userId) {
-        
+
         return userRepository.findById(userId);
     }
 
+    // Edita los datos de un usuario, si el email nuevo no esta usado por otro
     public User updateUser(Long userId, UserRequest userRequest)
             throws UserNotFoundException, InvalidUserException, UserDuplicateException {
 
@@ -50,6 +52,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.save(user);
     }
 
+    // Borra un usuario
     public void deleteUser(Long userId) throws UserNotFoundException {
         if(!userRepository.existsById(userId))
             throw new UserNotFoundException();
@@ -57,6 +60,7 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(userId);
     }
 
+    // Revisa que los datos del usuario tengan sentido antes de guardarlos
     private void validateUser(UserRequest userRequest) throws InvalidUserException {
         if (userRequest.getEmail() == null || userRequest.getEmail().isBlank())
             throw new InvalidUserException();

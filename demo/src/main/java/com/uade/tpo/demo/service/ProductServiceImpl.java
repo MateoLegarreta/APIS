@@ -15,11 +15,15 @@ import com.uade.tpo.demo.exceptions.CategoryNotFoundException;
 import com.uade.tpo.demo.exceptions.InvalidProductException;
 import com.uade.tpo.demo.exceptions.NotProductOwnerException;
 import com.uade.tpo.demo.exceptions.ProductNotFoundException;
+import com.uade.tpo.demo.repository.CartItemRepository;
 import com.uade.tpo.demo.repository.CategoryRepository;
 import com.uade.tpo.demo.repository.ProductRepository;
+
+import org.springframework.transaction.annotation.Transactional;
 import com.uade.tpo.demo.entity.User;
 import com.uade.tpo.demo.entity.Role;
 
+// Maneja los productos: crearlos, editarlos, borrarlos y buscarlos
 @Service
 public class ProductServiceImpl implements ProductService {
 
@@ -29,6 +33,10 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    @Autowired
+    private CartItemRepository cartItemRepository;
+
+    // Busca productos con los filtros que se pasen (todos son opcionales)
     public Page<Product> getProducts(PageRequest pageRequest, Long categoryId,
         String name, Double priceMin, Double priceMax) {
     return productRepository.search(categoryId, name, priceMin, priceMax, pageRequest);
@@ -38,6 +46,7 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findById(productId);
     }
 
+    // Crea un producto nuevo, con el usuario logueado como vendedor
     public Product createProduct(ProductRequest productRequest)
             throws CategoryNotFoundException, InvalidProductException {
 
@@ -57,6 +66,7 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.save(product);
     }
 
+    // Edita un producto, solo si es del vendedor logueado (o si es admin)
     public Product updateProduct(Long productId, ProductRequest productRequest)
             throws ProductNotFoundException, CategoryNotFoundException, InvalidProductException, NotProductOwnerException {
 
@@ -75,22 +85,33 @@ public class ProductServiceImpl implements ProductService {
             product.setDiscountPercentage(productRequest.getDiscountPercentage());
         product.setStock(productRequest.getStock());
         product.setCategory(category);
+        // Permite dar de baja o volver a dar de alta el producto
+        if (productRequest.getActive() != null)
+            product.setActive(productRequest.getActive());
 
         return productRepository.save(product);
     }
 
+    // Da de baja el producto en vez de borrarlo, para no romper las compras ya hechas.
+    // Tambien lo saca de los carritos ajenos para que nadie compre algo dado de baja
+    @Transactional
     public void deleteProduct(Long productId)
-        throws ProductNotFoundException, NotProductOwnerException {
+            throws ProductNotFoundException, NotProductOwnerException {
 
-    Optional<Product> result = productRepository.findById(productId);
-    if (result.isEmpty())
-        throw new ProductNotFoundException();
+        Optional<Product> result = productRepository.findById(productId);
+        if (result.isEmpty())
+            throw new ProductNotFoundException();
 
-    validateOwner(result.get());
+        Product product = result.get();
+        validateOwner(product);
 
-    productRepository.deleteById(productId);
+        cartItemRepository.deleteByProductId(productId);
+
+        product.setActive(false);
+        productRepository.save(product);
     }
 
+    // Revisa que los datos del producto tengan sentido antes de guardarlo
     private void validateProduct(ProductRequest productRequest) throws InvalidProductException {
         if (productRequest.getName() == null || productRequest.getName().isBlank())
             throw new InvalidProductException();
@@ -110,6 +131,7 @@ public class ProductServiceImpl implements ProductService {
             throw new InvalidProductException();
     }
 
+    // Busca la categoria del producto, y avisa si no existe
     private Category findCategory(Long categoryId) throws CategoryNotFoundException {
         if (categoryId == null)
             throw new CategoryNotFoundException();
@@ -121,12 +143,14 @@ public class ProductServiceImpl implements ProductService {
         return category.get();
     }
 
+    // Obtiene el usuario que esta logueado en este momento
     private User getLoggedUser() {
         return (User) SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getPrincipal();
-    } 
+    }
 
+    // Revisa que el producto sea del vendedor logueado, salvo que sea admin
     private void validateOwner(Product product) throws NotProductOwnerException {
         User loggedUser = getLoggedUser();
 

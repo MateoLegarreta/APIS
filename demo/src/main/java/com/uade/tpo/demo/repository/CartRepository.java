@@ -9,5 +9,6 @@ import com.uade.tpo.demo.entity.Cart;
 
 @Repository
 public interface CartRepository extends JpaRepository<Cart, Long> {
+    // Busca el carrito de un usuario
     Optional<Cart> findByUserId(Long userId);
 }

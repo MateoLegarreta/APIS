@@ -9,5 +9,6 @@ import com.uade.tpo.demo.entity.Order;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
-    List<Order> findByUserId(Long userId);
+    // Busca las ordenes de un usuario, ordenadas de la mas reciente a la mas antigua
+    List<Order> findByUserIdOrderByDateDesc(Long userId);
 }

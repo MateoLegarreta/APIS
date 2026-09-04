@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.Data;
 
+// Categoria a la que puede pertenecer un producto
 @Data
 @Entity
 public class Category {

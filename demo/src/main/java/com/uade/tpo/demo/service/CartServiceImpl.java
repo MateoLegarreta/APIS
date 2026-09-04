@@ -24,6 +24,7 @@ import com.uade.tpo.demo.repository.OrderRepository;
 import com.uade.tpo.demo.repository.ProductRepository;
 import com.uade.tpo.demo.repository.UserRepository;
 
+// Maneja todo lo relacionado al carrito: agregar, sacar, modificar productos y confirmar la compra
 @Service
 public class CartServiceImpl implements CartService {
 
@@ -39,11 +40,13 @@ public class CartServiceImpl implements CartService {
     @Autowired
     private OrderRepository orderRepository;
 
+    // Trae el carrito del usuario, y si todavia no tiene uno le crea uno vacio
     @Override
     public Cart getCartByUser(Long userId) {
         return getOrCreateCart(userId);
     }
 
+    // Agrega un producto al carrito, si ya estaba le suma la cantidad
     @Override
     public Cart addProductToCart(Long userId, Long productId, Integer quantity)
             throws ProductNotFoundException, InvalidQuantityException, InsufficientStockException {
@@ -60,7 +63,7 @@ public class CartServiceImpl implements CartService {
                 .filter(item -> item.getProduct().getId().equals(productId))
                 .findFirst();
 
-        // Si el producto ya está en el carrito, se suma a la cantidad existente
+        // Si el producto ya esta en el carrito, se suma a la cantidad existente
         int newQuantity = quantity;
         if (existing.isPresent())
             newQuantity += existing.get().getQuantity();
@@ -81,6 +84,7 @@ public class CartServiceImpl implements CartService {
         return cartRepository.save(cart);
     }
 
+    // Cambia la cantidad de un producto que ya esta en el carrito
     @Override
     public Cart updateCartItem(Long userId, Long productId, Integer quantity)
             throws CartNotFoundException, CartItemNotFoundException, InvalidQuantityException,
@@ -100,12 +104,13 @@ public class CartServiceImpl implements CartService {
         if (quantity > item.getProduct().getStock())
             throw new InsufficientStockException();
 
-        // Acá se fija la cantidad exacta (no se suma a lo que ya había)
+        // Aca se fija la cantidad exacta (no se suma a lo que ya habia)
         item.setQuantity(quantity);
 
         return cartRepository.save(cart);
     }
 
+    // Saca un producto del carrito
     @Override
     public Cart removeProductFromCart(Long userId, Long productId)
             throws CartNotFoundException, CartItemNotFoundException {
@@ -120,6 +125,7 @@ public class CartServiceImpl implements CartService {
         return cartRepository.save(cart);
     }
 
+    // Saca todos los productos del carrito, pero el carrito sigue existiendo
     @Override
     public void clearCart(Long userId) throws CartNotFoundException {
         Cart cart = cartRepository.findByUserId(userId)
@@ -129,6 +135,8 @@ public class CartServiceImpl implements CartService {
         cartRepository.save(cart);
     }
 
+    // Confirma la compra: valida el stock, descuenta las cantidades, crea el
+    // pedido con lo que habia en el carrito, y despues vacia el carrito
     @Override
     @Transactional
     public Order checkout(Long userId)
@@ -140,7 +148,7 @@ public class CartServiceImpl implements CartService {
         if (cart.getItems().isEmpty())
             throw new EmptyCartException();
 
-        // 1) Validar stock de TODOS los productos antes de descontar nada
+        // 1) Chequear que haya stock de TODOS los productos antes de descontar nada
         for (CartItem item : cart.getItems()) {
             if (item.getQuantity() > item.getProduct().getStock())
                 throw new InsufficientStockException();
@@ -152,7 +160,7 @@ public class CartServiceImpl implements CartService {
         order.setUser(user);
         order.setDate(LocalDateTime.now());
 
-        // 2) Descontar stock, armar las líneas del pedido y calcular el total
+        // 2) Descontar stock, armar los items del pedido y calcular el total
         double total = 0.0;
         for (CartItem item : cart.getItems()) {
             Product product = item.getProduct();
@@ -180,6 +188,7 @@ public class CartServiceImpl implements CartService {
         return savedOrder;
     }
 
+    // Busca el carrito del usuario, y si no tiene le crea uno nuevo vacio
     private Cart getOrCreateCart(Long userId) {
         return cartRepository.findByUserId(userId).orElseGet(() -> {
             Cart newCart = new Cart();

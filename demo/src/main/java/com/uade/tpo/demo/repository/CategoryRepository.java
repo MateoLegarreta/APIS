@@ -11,6 +11,7 @@ import com.uade.tpo.demo.entity.Category;
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
+    // Busca categorias que tengan exactamente esa descripcion, para no repetirlas
     @Query(value = "select c from Category c where c.description = ?1")
     List<Category> findByDescription(String description);
 }

@@ -14,6 +14,7 @@ import com.uade.tpo.demo.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
+// Se encarga del registro y el login de usuarios
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
@@ -22,6 +23,7 @@ public class AuthenticationService {
         private final JwtService jwtService;
         private final AuthenticationManager authenticationManager;
 
+        // Crea un usuario nuevo y le devuelve un token para que quede logueado
         public AuthenticationResponse register(RegisterRequest request) {
                 var user = User.builder()
                                 .name(request.getName())
@@ -38,6 +40,7 @@ public class AuthenticationService {
                                 .build();
         }
 
+        // Revisa que el email y la contraseña sean correctos y devuelve un token
         public AuthenticationResponse authenticate(AuthenticationRequest request) {
                 authenticationManager.authenticate(
                                 new UsernamePasswordAuthenticationToken(

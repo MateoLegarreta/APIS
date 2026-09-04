@@ -13,6 +13,7 @@ import com.uade.tpo.demo.service.AuthenticationService;
 
 import lombok.RequiredArgsConstructor;
 
+// Rutas publicas para registrarse y para iniciar sesion
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -20,12 +21,14 @@ public class AuthenticationController {
 
     private final AuthenticationService service;
 
+    // Crea un usuario nuevo y devuelve su token
     @PostMapping("/register")
     public ResponseEntity<AuthenticationResponse> register(
             @RequestBody RegisterRequest request) {
         return ResponseEntity.ok(service.register(request));
     }
 
+    // Inicia sesion con email y contraseña y devuelve un token
     @PostMapping("/authenticate")
     public ResponseEntity<AuthenticationResponse> authenticate(
             @RequestBody AuthenticationRequest request) {

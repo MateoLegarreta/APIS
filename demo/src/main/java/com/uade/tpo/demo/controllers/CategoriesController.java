@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import com.uade.tpo.demo.exceptions.CategoryNotFoundException;
 import com.uade.tpo.demo.exceptions.CategoryHasProductsException;
 
+// Rutas para ver y administrar las categorias de productos
 @RestController
 @RequestMapping("categories")
 public class CategoriesController {
@@ -34,6 +35,7 @@ public class CategoriesController {
     @Autowired
     private CategoryService categoryService;
 
+    // Lista las categorias, de a paginas si se piden
     @GetMapping
     public ResponseEntity<Page<Category>> getCategories(
             @RequestParam(required = false) Integer page,
@@ -43,6 +45,7 @@ public class CategoriesController {
         return ResponseEntity.ok(categoryService.getCategories(PageRequest.of(page, size)));
     }
 
+    // Busca una categoria por su id
     @GetMapping("/{categoryId}")
     public ResponseEntity<Category> getCategoryById(@PathVariable Long categoryId) {
         Optional<Category> result = categoryService.getCategoryById(categoryId);
@@ -52,6 +55,7 @@ public class CategoriesController {
         return ResponseEntity.notFound().build();
     }
 
+    // Solo el admin puede crear categorias nuevas
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
     public ResponseEntity<Object> createCategory(@RequestBody CategoryRequest categoryRequest)
@@ -60,6 +64,7 @@ public class CategoriesController {
         return ResponseEntity.created(URI.create("/categories/" + result.getId())).body(result);
     }
 
+    // Solo el admin puede editar una categoria
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/{categoryId}")
     public ResponseEntity<Category> updateCategory(
@@ -70,6 +75,7 @@ public class CategoriesController {
         return ResponseEntity.ok(result);
     }
 
+    // Solo el admin puede borrar una categoria
     @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{categoryId}")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long categoryId)

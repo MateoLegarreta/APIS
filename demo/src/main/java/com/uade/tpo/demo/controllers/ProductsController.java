@@ -27,6 +27,7 @@ import com.uade.tpo.demo.exceptions.ProductNotFoundException;
 import com.uade.tpo.demo.service.ProductService;
 
 
+// Rutas para ver y administrar los productos
 @RestController
 @RequestMapping("products")
 public class ProductsController {
@@ -34,6 +35,7 @@ public class ProductsController {
     @Autowired
     private ProductService productService;
 
+    // Lista los productos, con filtros opcionales de categoria, nombre y precio
     @GetMapping
     public ResponseEntity<Page<Product>> getProducts(
             @RequestParam(required = false) Integer page,
@@ -51,6 +53,7 @@ public class ProductsController {
                 PageRequest.of(page, size), categoryId, name, priceMin, priceMax));
     }
 
+    // Busca un producto por su id
     @GetMapping("/{productId}")
     public ResponseEntity<Product> getProductById(@PathVariable Long productId) {
         Optional<Product> result = productService.getProductById(productId);
@@ -60,6 +63,7 @@ public class ProductsController {
         return ResponseEntity.notFound().build();
     }
 
+    // Solo un vendedor o el admin pueden crear productos nuevos
     @PreAuthorize("hasAnyAuthority('SELLER','ADMIN')")
     @PostMapping
     public ResponseEntity<Product> createProduct(@RequestBody ProductRequest productRequest)
@@ -68,6 +72,7 @@ public class ProductsController {
         return ResponseEntity.created(URI.create("/products/" + result.getId())).body(result);
     }
 
+    // Solo un vendedor o el admin pueden editar un producto
     @PreAuthorize("hasAnyAuthority('SELLER','ADMIN')")
     @PutMapping("/{productId}")
     public ResponseEntity<Product> updateProduct(
@@ -77,6 +82,7 @@ public class ProductsController {
         return ResponseEntity.ok(productService.updateProduct(productId, productRequest));
     }
 
+    // Solo un vendedor o el admin pueden borrar un producto
     @PreAuthorize("hasAnyAuthority('SELLER','ADMIN')")
     @DeleteMapping("/{productId}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long productId)

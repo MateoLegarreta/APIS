@@ -23,6 +23,7 @@ import com.uade.tpo.demo.exceptions.UserDuplicateException;
 import com.uade.tpo.demo.exceptions.UserNotFoundException;
 import com.uade.tpo.demo.service.UserService;
 
+// Rutas para administrar usuarios, todas son solo para el admin
 @RestController
 @RequestMapping("users")
 public class UsersController {
@@ -30,6 +31,7 @@ public class UsersController {
     @Autowired
     private UserService userService;
 
+    // Lista todos los usuarios
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping
     public ResponseEntity<Page<User>> getUsers(
@@ -40,6 +42,7 @@ public class UsersController {
         return ResponseEntity.ok(userService.getUsers(PageRequest.of(page, size)));
     }
 
+    // Busca un usuario por su id
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/{userId}")
     public ResponseEntity<User> getUserById(@PathVariable Long userId) {
@@ -50,6 +53,7 @@ public class UsersController {
         return ResponseEntity.notFound().build();
     }
 
+    // Edita los datos de un usuario
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/{userId}")
     public ResponseEntity<User> updateUser(
@@ -60,6 +64,7 @@ public class UsersController {
         return ResponseEntity.ok(result);
     }
 
+    // Borra un usuario
     @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long userId)

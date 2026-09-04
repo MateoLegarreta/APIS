@@ -16,6 +16,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Transient;
 import lombok.Data;
 
+// El carrito de compras de un usuario, cada usuario tiene el suyo
 @Data
 @Entity
 public class Cart {
@@ -32,6 +33,7 @@ public class Cart {
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> items = new ArrayList<>();
 
+    // Suma el precio de todos los productos del carrito, no se guarda en la base
     @Transient
     public Double getTotal() {
         if (items == null)

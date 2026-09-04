@@ -21,6 +21,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+// Un usuario del sistema. Implementa UserDetails porque Spring Security lo necesita para el login
 @Entity
 @Data
 @Builder
@@ -52,17 +53,21 @@ public class User implements UserDetails {
     @Column (nullable = false)
     private String password;
 
+    // Spring Security usa el email como nombre de usuario para el login
     @JsonIgnore
     @Override
     public String getUsername() {
         return email;
     }
 
+    // Le dice a Spring Security que rol tiene el usuario, para los permisos
     @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
+    // Estos cuatro metodos son requeridos por Spring Security, ac no manejamos
+    // cuentas vencidas, bloqueadas ni deshabilitadas, por eso siempre dan true
     @JsonIgnore
     public boolean isAccountNonExpired() {
         return true;
@@ -77,7 +82,7 @@ public class User implements UserDetails {
     public boolean isCredentialsNonExpired() {
         return true;
     }
-    
+
     @JsonIgnore
     public boolean isEnabled() {
         return true;

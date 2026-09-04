@@ -30,6 +30,7 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryRepository.findById(categoryId);
     }
 
+    // Crea una categoria nueva, si no hay otra con la misma descripcion
     public Category createCategory(String description) throws CategoryDuplicateException {
         List<Category> categories = categoryRepository.findByDescription(description);
         if (categories.isEmpty())
@@ -37,6 +38,7 @@ public class CategoryServiceImpl implements CategoryService {
         throw new CategoryDuplicateException();
     }
 
+     // Cambia la descripcion de una categoria, si no queda repetida con otra
      public Category updateCategory(Long categoryId, String description)
           throws CategoryNotFoundException, CategoryDuplicateException {
 
@@ -44,6 +46,7 @@ public class CategoryServiceImpl implements CategoryService {
       if (result.isEmpty())
           throw new CategoryNotFoundException();
 
+      // Revisa que ninguna OTRA categoria tenga ya esa misma descripcion
       boolean duplicada = categoryRepository.findByDescription(description).stream()
               .anyMatch(category -> !category.getId().equals(categoryId));
       if (duplicada)
@@ -54,6 +57,7 @@ public class CategoryServiceImpl implements CategoryService {
       return categoryRepository.save(category);
   }
 
+    // Borra una categoria, solo si no tiene productos usandola
     public void deleteCategory(Long categoryId)
             throws CategoryNotFoundException, CategoryHasProductsException {
 

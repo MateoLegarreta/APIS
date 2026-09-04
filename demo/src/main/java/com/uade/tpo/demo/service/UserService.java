@@ -8,6 +8,7 @@ import com.uade.tpo.demo.exceptions.InvalidUserException;
 import com.uade.tpo.demo.exceptions.UserDuplicateException;
 import com.uade.tpo.demo.exceptions.UserNotFoundException;
 
+// Todas las operaciones que puede hacer el admin sobre los usuarios
 public interface UserService {
     public Page<User> getUsers(PageRequest pageRequest);
     public Optional<User> getUserById(Long userId);

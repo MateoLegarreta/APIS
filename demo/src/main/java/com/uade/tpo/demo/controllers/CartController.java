@@ -25,6 +25,7 @@ import com.uade.tpo.demo.exceptions.InvalidQuantityException;
 import com.uade.tpo.demo.exceptions.ProductNotFoundException;
 import com.uade.tpo.demo.service.CartService;
 
+// Rutas para manejar el carrito de compras del usuario logueado
 @RestController
 @RequestMapping("cart")
 public class CartController {
@@ -32,13 +33,13 @@ public class CartController {
     @Autowired
     private CartService cartService;
 
-    // GET /cart -> ver el carrito del usuario autenticado
+    // Muestra el carrito del usuario logueado
     @GetMapping
     public ResponseEntity<Cart> getCart(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(cartService.getCartByUser(user.getId()));
     }
 
-    // POST /cart/items -> agregar un producto al carrito
+    // Agrega un producto al carrito
     @PostMapping("/items")
     public ResponseEntity<Cart> addItem(
             @AuthenticationPrincipal User user,
@@ -49,7 +50,7 @@ public class CartController {
         return ResponseEntity.ok(cart);
     }
 
-    // PUT /cart/items/{productId} -> modificar la cantidad de un producto
+    // Cambia la cantidad de un producto que ya esta en el carrito
     @PutMapping("/items/{productId}")
     public ResponseEntity<Cart> updateItem(
             @AuthenticationPrincipal User user,
@@ -62,7 +63,7 @@ public class CartController {
         return ResponseEntity.ok(cart);
     }
 
-    // DELETE /cart/items/{productId} -> eliminar un producto del carrito
+    // Saca un producto del carrito
     @DeleteMapping("/items/{productId}")
     public ResponseEntity<Cart> removeItem(
             @AuthenticationPrincipal User user,
@@ -73,7 +74,7 @@ public class CartController {
         return ResponseEntity.ok(cart);
     }
 
-    // DELETE /cart -> vaciar el carrito completo
+    // Vacia el carrito completo
     @DeleteMapping
     public ResponseEntity<Void> clearCart(@AuthenticationPrincipal User user)
             throws CartNotFoundException {
@@ -82,8 +83,7 @@ public class CartController {
         return ResponseEntity.noContent().build();
     }
 
-    // POST /cart/checkout -> confirmar la compra: calcula el total, valida y
-    // descuenta el stock, crea el pedido (Order) y vacía el carrito
+    // Confirma la compra: crea el pedido con lo que hay en el carrito y despues lo vacia
     @PostMapping("/checkout")
     public ResponseEntity<Order> checkout(@AuthenticationPrincipal User user)
             throws CartNotFoundException, EmptyCartException, InsufficientStockException {

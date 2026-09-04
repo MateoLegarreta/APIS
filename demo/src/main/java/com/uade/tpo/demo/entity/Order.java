@@ -16,6 +16,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
 
+// Un pedido ya confirmado, se crea cuando el usuario hace checkout del carrito
 @Entity
 @Data
 @Table(name = "orders")

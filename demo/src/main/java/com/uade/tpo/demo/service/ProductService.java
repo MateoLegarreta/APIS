@@ -13,6 +13,7 @@ import com.uade.tpo.demo.exceptions.NotProductOwnerException;
 import com.uade.tpo.demo.exceptions.ProductNotFoundException;
 
 
+// Todas las operaciones que se pueden hacer con los productos
 public interface ProductService {
 
     public Page<Product> getProducts(PageRequest pageRequest, Long categoryId,

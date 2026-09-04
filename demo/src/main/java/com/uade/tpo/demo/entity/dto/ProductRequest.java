@@ -10,4 +10,5 @@ public class ProductRequest {
     private Integer stock;
     private Long categoryId;
     private Double discountPercentage;
+    private Boolean active;
 }
