@@ -45,32 +45,40 @@ public class User implements UserDetails {
     private List<Order> orders;
 
     @Enumerated(EnumType.STRING)
+    @Column (nullable = false)
     private Role role;
 
     @JsonIgnore
+    @Column (nullable = false)
     private String password;
 
+    @JsonIgnore
     @Override
     public String getUsername() {
         return email;
     }
 
+    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
+    @JsonIgnore
     public boolean isAccountNonExpired() {
         return true;
     }
 
+    @JsonIgnore
     public boolean isAccountNonLocked() {
         return true;
     }
 
+    @JsonIgnore
     public boolean isCredentialsNonExpired() {
         return true;
     }
-
+    
+    @JsonIgnore
     public boolean isEnabled() {
         return true;
     }

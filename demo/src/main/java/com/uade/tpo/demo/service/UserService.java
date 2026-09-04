@@ -11,7 +11,6 @@ import com.uade.tpo.demo.exceptions.UserNotFoundException;
 public interface UserService {
     public Page<User> getUsers(PageRequest pageRequest);
     public Optional<User> getUserById(Long userId);
-    public User createUser(UserRequest userRequest) throws InvalidUserException, UserDuplicateException;
     public User updateUser(Long userId, UserRequest userRequest) throws UserNotFoundException, InvalidUserException, UserDuplicateException;
     public void deleteUser(Long userId) throws UserNotFoundException;
 }

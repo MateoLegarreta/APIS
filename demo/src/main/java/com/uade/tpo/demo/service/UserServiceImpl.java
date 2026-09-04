@@ -30,19 +30,6 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(userId);
     }
 
-    public User createUser(UserRequest userRequest) throws InvalidUserException, UserDuplicateException {
-        validateUser(userRequest);
-
-        if (userRepository.existsByEmail(userRequest.getEmail()))
-            throw new UserDuplicateException();
-
-        return userRepository.save(User.builder()
-                .email(userRequest.getEmail())
-                .name(userRequest.getName())
-                .surname(userRequest.getSurname())
-                .build());
-    }
-
     public User updateUser(Long userId, UserRequest userRequest)
             throws UserNotFoundException, InvalidUserException, UserDuplicateException {
 
