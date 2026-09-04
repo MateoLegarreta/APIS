@@ -18,6 +18,7 @@ import com.uade.tpo.demo.exceptions.ProductNotFoundException;
 import com.uade.tpo.demo.repository.CategoryRepository;
 import com.uade.tpo.demo.repository.ProductRepository;
 import com.uade.tpo.demo.entity.User;
+import com.uade.tpo.demo.entity.Role;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -127,7 +128,11 @@ public class ProductServiceImpl implements ProductService {
     } 
 
     private void validateOwner(Product product) throws NotProductOwnerException {
-    if (!product.getSeller().getId().equals(getLoggedUser().getId()))
-        throw new NotProductOwnerException();
+        User loggedUser = getLoggedUser();
+
+        if (loggedUser.getRole() == Role.ADMIN)
+            return;
+        if (!product.getSeller().getId().equals(loggedUser.getId()))
+            throw new NotProductOwnerException();
     }
 }

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +30,7 @@ public class UsersController {
     @Autowired
     private UserService userService;
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping
     public ResponseEntity<Page<User>> getUsers(
             @RequestParam(required = false) Integer page,
@@ -38,6 +40,7 @@ public class UsersController {
         return ResponseEntity.ok(userService.getUsers(PageRequest.of(page, size)));
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/{userId}")
     public ResponseEntity<User> getUserById(@PathVariable Long userId) {
         Optional<User> result = userService.getUserById(userId);
@@ -47,6 +50,7 @@ public class UsersController {
         return ResponseEntity.notFound().build();
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/{userId}")
     public ResponseEntity<User> updateUser(
             @PathVariable Long userId,
@@ -56,6 +60,7 @@ public class UsersController {
         return ResponseEntity.ok(result);
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long userId)
             throws UserNotFoundException {

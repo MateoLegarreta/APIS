@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -51,6 +52,7 @@ public class CategoriesController {
         return ResponseEntity.notFound().build();
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
     public ResponseEntity<Object> createCategory(@RequestBody CategoryRequest categoryRequest)
             throws CategoryDuplicateException {
@@ -58,6 +60,7 @@ public class CategoriesController {
         return ResponseEntity.created(URI.create("/categories/" + result.getId())).body(result);
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/{categoryId}")
     public ResponseEntity<Category> updateCategory(
             @PathVariable Long categoryId,
@@ -67,6 +70,7 @@ public class CategoriesController {
         return ResponseEntity.ok(result);
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{categoryId}")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long categoryId)
             throws CategoryNotFoundException, CategoryHasProductsException {

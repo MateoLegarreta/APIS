@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -59,6 +60,7 @@ public class ProductsController {
         return ResponseEntity.notFound().build();
     }
 
+    @PreAuthorize("hasAnyAuthority('SELLER','ADMIN')")
     @PostMapping
     public ResponseEntity<Product> createProduct(@RequestBody ProductRequest productRequest)
             throws CategoryNotFoundException, InvalidProductException {
@@ -66,6 +68,7 @@ public class ProductsController {
         return ResponseEntity.created(URI.create("/products/" + result.getId())).body(result);
     }
 
+    @PreAuthorize("hasAnyAuthority('SELLER','ADMIN')")
     @PutMapping("/{productId}")
     public ResponseEntity<Product> updateProduct(
             @PathVariable Long productId,
@@ -74,6 +77,7 @@ public class ProductsController {
         return ResponseEntity.ok(productService.updateProduct(productId, productRequest));
     }
 
+    @PreAuthorize("hasAnyAuthority('SELLER','ADMIN')")
     @DeleteMapping("/{productId}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long productId)
             throws ProductNotFoundException, NotProductOwnerException {
