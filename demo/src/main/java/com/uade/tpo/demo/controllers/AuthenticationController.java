@@ -5,7 +5,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+import com.uade.tpo.demo.exceptions.InvalidUserException;
+import com.uade.tpo.demo.exceptions.UserDuplicateException;
 import com.uade.tpo.demo.entity.dto.AuthenticationRequest;
 import com.uade.tpo.demo.entity.dto.AuthenticationResponse;
 import com.uade.tpo.demo.entity.dto.RegisterRequest;
@@ -23,10 +24,10 @@ public class AuthenticationController {
 
     // Crea un usuario nuevo y devuelve su token
     @PostMapping("/register")
-    public ResponseEntity<AuthenticationResponse> register(
-            @RequestBody RegisterRequest request) {
-        return ResponseEntity.ok(service.register(request));
-    }
+    public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request) 
+            throws UserDuplicateException, InvalidUserException{
+                return ResponseEntity.ok(service.register(request));
+                }
 
     // Inicia sesion con email y contraseña y devuelve un token
     @PostMapping("/authenticate")
