@@ -11,8 +11,8 @@ import com.uade.tpo.demo.entity.Product;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
-  // Dice si una categoria tiene al menos un producto
-  boolean existsByCategoryId(Long categoryId);
+  // Dice si una categoria tiene al menos un producto activo
+  boolean existsByCategoryIdAndActiveTrue(Long categoryId);
 
         // Busca productos filtrando por categoria, nombre y rango de precio, todos opcionales.
     // Solo devuelve los que estan dados de alta
