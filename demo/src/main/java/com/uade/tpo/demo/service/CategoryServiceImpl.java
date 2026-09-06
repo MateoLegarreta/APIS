@@ -64,7 +64,7 @@ public class CategoryServiceImpl implements CategoryService {
         if (!categoryRepository.existsById(categoryId))
             throw new CategoryNotFoundException();
 
-        if (productRepository.existsByCategoryId(categoryId))
+        if (productRepository.existsByCategoryIdAndActiveTrue(categoryId))
             throw new CategoryHasProductsException();
 
         categoryRepository.deleteById(categoryId);
