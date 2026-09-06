@@ -55,12 +55,9 @@ public class ProductsController {
 
     // Busca un producto por su id
     @GetMapping("/{productId}")
-    public ResponseEntity<Product> getProductById(@PathVariable Long productId) {
-        Optional<Product> result = productService.getProductById(productId);
-        if (result.isPresent())
-            return ResponseEntity.ok(result.get());
-
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<Product> getProductById(@PathVariable Long productId)
+            throws ProductNotFoundException {
+                return ResponseEntity.ok(productService.getProductById(productId));
     }
 
     // Solo un vendedor o el admin pueden crear productos nuevos

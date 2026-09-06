@@ -42,9 +42,11 @@ public class ProductServiceImpl implements ProductService {
     return productRepository.search(categoryId, name, priceMin, priceMax, pageRequest);
     }
 
-    public Optional<Product> getProductById(Long productId) {
-        return productRepository.findById(productId);
-    }
+     public Product getProductById(Long productId) throws ProductNotFoundException {
+      return productRepository.findById(productId)
+              .filter(p -> Boolean.TRUE.equals(p.getActive()))
+              .orElseThrow(ProductNotFoundException::new);
+  }
 
     // Crea un producto nuevo, con el usuario logueado como vendedor
     public Product createProduct(ProductRequest productRequest)

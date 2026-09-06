@@ -19,7 +19,7 @@ public interface ProductService {
     public Page<Product> getProducts(PageRequest pageRequest, Long categoryId,
             String name, Double priceMin, Double priceMax);
 
-    public Optional<Product> getProductById(Long productId);
+    public Product getProductById(Long productId) throws ProductNotFoundException;
 
     public Product createProduct(ProductRequest productRequest)
             throws CategoryNotFoundException, InvalidProductException;
