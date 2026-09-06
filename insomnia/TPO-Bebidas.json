@@ -1,0 +1,962 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-09-06T15:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v8.0.0",
+  "resources": [
+    {
+      "_id": "wrk_tpo_bebidas",
+      "_type": "workspace",
+      "parentId": null,
+      "name": "TPO Bebidas - Demo",
+      "description": "Ecommerce de bebidas. Recorridos completos de comprador y vendedor/admin para la demo del TPO.",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_base",
+      "_type": "environment",
+      "parentId": "wrk_tpo_bebidas",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:4002"
+      },
+      "dataPropertyOrder": {
+        "&": ["base_url"]
+      },
+      "metaSortKey": 1
+    },
+
+    {
+      "_id": "fld_comprador",
+      "_type": "request_group",
+      "parentId": "wrk_tpo_bebidas",
+      "name": "1 - Camino del comprador (Lucia)",
+      "description": "Registro, login, catalogo con filtros, carrito, checkout y pedidos. Mandar en orden.",
+      "metaSortKey": -300
+    },
+    {
+      "_id": "req_c01_register",
+      "_type": "request",
+      "parentId": "fld_comprador",
+      "name": "01 - Registro de una compradora nueva  [200 + token]",
+      "description": "Alta de usuario: devuelve directamente el token, sin necesidad de loguearse. El rol por defecto es BUYER. OJO: se manda UNA sola vez; si lo repetis da 400 por email duplicado. Si ya lo probaste antes de la demo, cambiale el mail (martina2@mail.com) o borra el usuario de la base.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/auth/register",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Martina\",\n  \"surname\": \"Gomez\",\n  \"email\": \"martina@mail.com\",\n  \"password\": \"martina123\",\n  \"role\": \"BUYER\"\n}"
+      },
+      "metaSortKey": 1010
+    },
+    {
+      "_id": "req_buyer_login",
+      "_type": "request",
+      "parentId": "fld_comprador",
+      "name": "02 - Login Lucia (BUYER)  [200 + token]",
+      "description": "Devuelve el access_token. Todos los requests del comprador toman el token de ACA automaticamente.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/auth/authenticate",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"lucia@mail.com\",\n  \"password\": \"lucia123\"\n}"
+      },
+      "metaSortKey": 1020
+    },
+    {
+      "_id": "req_c03_catalogo",
+      "_type": "request",
+      "parentId": "fld_comprador",
+      "name": "03 - Catalogo completo  [200]",
+      "description": "25 productos. Mirar totalElements y el campo finalPrice, que se calcula con el descuento y no esta guardado en la base.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/products",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 1030
+    },
+    {
+      "_id": "req_c04_filtro_categoria",
+      "_type": "request",
+      "parentId": "fld_comprador",
+      "name": "04 - Filtro por categoria (Gin)  [200]",
+      "description": "categoryId=6 es Gin. Los filtros son todos opcionales y se combinan en una sola query JPQL.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/products?categoryId=6",
+      "parameters": [
+        { "name": "categoryId", "value": "6" }
+      ],
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 1040
+    },
+    {
+      "_id": "req_c05_filtro_nombre",
+      "_type": "request",
+      "parentId": "fld_comprador",
+      "name": "05 - Filtro por nombre  [200]",
+      "description": "Busqueda parcial y sin distinguir mayusculas: lower(name) like %malbec%.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/products?name=malbec",
+      "parameters": [
+        { "name": "name", "value": "malbec" }
+      ],
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 1050
+    },
+    {
+      "_id": "req_c06_filtro_precio",
+      "_type": "request",
+      "parentId": "fld_comprador",
+      "name": "06 - Filtro por rango de precio  [200]",
+      "description": "Importante: el rango se aplica sobre el precio CON descuento, que es lo que el comprador va a pagar.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/products?priceMin=20000&priceMax=60000",
+      "parameters": [
+        { "name": "priceMin", "value": "20000" },
+        { "name": "priceMax", "value": "60000" }
+      ],
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 1060
+    },
+    {
+      "_id": "req_c07_paginado",
+      "_type": "request",
+      "parentId": "fld_comprador",
+      "name": "07 - Paginado  [200]",
+      "description": "Page<Product> trae content, totalElements, totalPages, number y size. El LIMIT lo agrega Spring Data solo.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/products?page=0&size=5",
+      "parameters": [
+        { "name": "page", "value": "0" },
+        { "name": "size", "value": "5" }
+      ],
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 1070
+    },
+    {
+      "_id": "req_c08_detalle",
+      "_type": "request",
+      "parentId": "fld_comprador",
+      "name": "08 - Detalle: Johnnie Walker con 25% off  [200]",
+      "description": "price 72000, discountPercentage 25, finalPrice 54000. El finalPrice es @Transient: se calcula, no se guarda.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/products/14",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 1080
+    },
+    {
+      "_id": "req_c09_categorias",
+      "_type": "request",
+      "parentId": "fld_comprador",
+      "name": "09 - Listado de categorias  [200]",
+      "description": "Las 8 categorias de la tienda.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/categories",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 1090
+    },
+    {
+      "_id": "req_c10_add_1",
+      "_type": "request",
+      "parentId": "fld_comprador",
+      "name": "10 - Agregar al carrito: Johnnie Walker x2  [200]",
+      "description": "El carrito se crea solo la primera vez. El subtotal usa el precio con descuento.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/cart/items",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"productId\": 14,\n  \"quantity\": 2\n}"
+      },
+      "metaSortKey": 1100
+    },
+    {
+      "_id": "req_c11_add_2",
+      "_type": "request",
+      "parentId": "fld_comprador",
+      "name": "11 - Agregar al carrito: Trapiche x3  [200]",
+      "description": "Segundo producto, tambien con descuento (15%).",
+      "method": "POST",
+      "url": "{{ _.base_url }}/cart/items",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"productId\": 2,\n  \"quantity\": 3\n}"
+      },
+      "metaSortKey": 1110
+    },
+    {
+      "_id": "req_c12_ver_carrito",
+      "_type": "request",
+      "parentId": "fld_comprador",
+      "name": "12 - Ver el carrito  [200]",
+      "description": "Los subtotales y el total se calculan al vuelo, no se guardan. Si el vendedor cambia un descuento, el total cambia solo.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/cart",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 1120
+    },
+    {
+      "_id": "req_c13_update_cant",
+      "_type": "request",
+      "parentId": "fld_comprador",
+      "name": "13 - Cambiar la cantidad del Johnnie Walker  [200]",
+      "description": "De 2 a 1. Valida cantidad > 0 y stock disponible.",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/cart/items/14",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"quantity\": 1\n}"
+      },
+      "metaSortKey": 1130
+    },
+    {
+      "_id": "req_c14_remove",
+      "_type": "request",
+      "parentId": "fld_comprador",
+      "name": "14 - Sacar el Trapiche del carrito  [200]",
+      "description": "Elimina el item y devuelve el carrito actualizado.",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/cart/items/2",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 1140
+    },
+    {
+      "_id": "req_c15_add_3",
+      "_type": "request",
+      "parentId": "fld_comprador",
+      "name": "15 - Agregar al carrito: Fernet Branca x2  [200]",
+      "description": "Tercer producto para que la orden quede con dos items.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/cart/items",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"productId\": 20,\n  \"quantity\": 2\n}"
+      },
+      "metaSortKey": 1150
+    },
+    {
+      "_id": "req_c16_carrito_final",
+      "_type": "request",
+      "parentId": "fld_comprador",
+      "name": "16 - Carrito final antes de comprar  [200]",
+      "description": "Johnnie Walker x1 + Fernet x2. Verificar que los subtotales sumen el total.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/cart",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 1160
+    },
+    {
+      "_id": "req_checkout",
+      "_type": "request",
+      "parentId": "fld_comprador",
+      "name": "17 - CHECKOUT  [200 + orden creada]",
+      "description": "El momento fuerte de la demo. En una sola transaccion: valida stock, descuenta stock, congela el precio en unitPrice, crea la orden y vacia el carrito.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/cart/checkout",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 1170
+    },
+    {
+      "_id": "req_c18_mis_pedidos",
+      "_type": "request",
+      "parentId": "fld_comprador",
+      "name": "18 - Mis pedidos  [200]",
+      "description": "Solo los pedidos del usuario logueado, ordenados por fecha descendente.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/orders",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 1180
+    },
+    {
+      "_id": "req_c19_detalle_pedido",
+      "_type": "request",
+      "parentId": "fld_comprador",
+      "name": "19 - Detalle del pedido  [200]",
+      "description": "El id sale automaticamente de la respuesta del checkout. Mirar unitPrice: es el precio congelado al momento de la compra.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/orders/{% response 'body', 'req_checkout', '$.id', 'no-history' %}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 1190
+    },
+    {
+      "_id": "req_c20_carrito_vacio",
+      "_type": "request",
+      "parentId": "fld_comprador",
+      "name": "20 - El carrito quedo vacio  [200]",
+      "description": "Cierra el recorrido: despues del checkout el carrito no tiene items y el total es 0.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/cart",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 1200
+    },
+
+    {
+      "_id": "fld_vendedor",
+      "_type": "request_group",
+      "parentId": "wrk_tpo_bebidas",
+      "name": "2 - Camino del vendedor y del admin",
+      "description": "ABM de producto con descuento y baja logica, ventas del local, ABM de categorias y usuarios.",
+      "metaSortKey": -200
+    },
+    {
+      "_id": "req_seller_login",
+      "_type": "request",
+      "parentId": "fld_vendedor",
+      "name": "01 - Login Bruno (SELLER)  [200 + token]",
+      "description": "Los requests del vendedor toman el token de aca.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/auth/authenticate",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"bruno@mail.com\",\n  \"password\": \"bruno123\"\n}"
+      },
+      "metaSortKey": 2010
+    },
+    {
+      "_id": "req_prod_create",
+      "_type": "request",
+      "parentId": "fld_vendedor",
+      "name": "02 - Alta de producto  [201 + Location]",
+      "description": "Devuelve 201 con el header Location. Ojo: el body NO manda seller: el vendedor sale del token, nunca del cliente.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/products",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_seller_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Gin Beefeater London Dry 700ml\",\n  \"description\": \"Gin ingles clasico, botanicos citricos y enebro marcado. Ideal para gin tonic.\",\n  \"price\": 24500,\n  \"stock\": 30,\n  \"categoryId\": 6\n}"
+      },
+      "metaSortKey": 2020
+    },
+    {
+      "_id": "req_v03_ver_nuevo",
+      "_type": "request",
+      "parentId": "fld_vendedor",
+      "name": "03 - Ver el producto recien creado  [200]",
+      "description": "El id se toma solo de la respuesta del alta. Notar que seller quedo Bruno y active es true.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/products/{% response 'body', 'req_prod_create', '$.id', 'no-history' %}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_seller_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 2030
+    },
+    {
+      "_id": "req_v04_editar",
+      "_type": "request",
+      "parentId": "fld_vendedor",
+      "name": "04 - Editar precio y stock  [200]",
+      "description": "PUT reemplaza el producto completo. Sube el precio a 26900 y el stock a 45.",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/products/{% response 'body', 'req_prod_create', '$.id', 'no-history' %}",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_seller_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Gin Beefeater London Dry 700ml\",\n  \"description\": \"Gin ingles clasico, botanicos citricos y enebro marcado. Ideal para gin tonic.\",\n  \"price\": 26900,\n  \"stock\": 45,\n  \"categoryId\": 6\n}"
+      },
+      "metaSortKey": 2040
+    },
+    {
+      "_id": "req_v05_descuento",
+      "_type": "request",
+      "parentId": "fld_vendedor",
+      "name": "05 - Aplicar 20% de descuento  [200]",
+      "description": "price sigue en 26900 pero finalPrice pasa a 21520. Guardamos el porcentaje, no el precio final, asi nunca se desincronizan.",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/products/{% response 'body', 'req_prod_create', '$.id', 'no-history' %}",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_seller_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Gin Beefeater London Dry 700ml\",\n  \"description\": \"Gin ingles clasico, botanicos citricos y enebro marcado. Ideal para gin tonic.\",\n  \"price\": 26900,\n  \"stock\": 45,\n  \"categoryId\": 6,\n  \"discountPercentage\": 20\n}"
+      },
+      "metaSortKey": 2050
+    },
+    {
+      "_id": "req_v06_en_catalogo",
+      "_type": "request",
+      "parentId": "fld_vendedor",
+      "name": "06 - Ya aparece en el catalogo  [200]",
+      "description": "Buscarlo por nombre: totalElements = 1, con el finalPrice ya con descuento.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/products?name=beefeater",
+      "parameters": [
+        { "name": "name", "value": "beefeater" }
+      ],
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_seller_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 2060
+    },
+    {
+      "_id": "req_v07_baja",
+      "_type": "request",
+      "parentId": "fld_vendedor",
+      "name": "07 - BAJA LOGICA del producto  [204]",
+      "description": "No borra la fila: pone active en false y lo saca de todos los carritos, en una sola transaccion. Asi no se rompen las ordenes historicas.",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/products/{% response 'body', 'req_prod_create', '$.id', 'no-history' %}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_seller_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 2070
+    },
+    {
+      "_id": "req_v08_baja_404",
+      "_type": "request",
+      "parentId": "fld_vendedor",
+      "name": "08 - Dado de baja: ya no responde por id  [404]",
+      "description": "Para el catalogo, dado de baja y no existe son lo mismo. Devuelve 404 con el mensaje en el body.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/products/{% response 'body', 'req_prod_create', '$.id', 'no-history' %}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_seller_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 2080
+    },
+    {
+      "_id": "req_v09_baja_catalogo",
+      "_type": "request",
+      "parentId": "fld_vendedor",
+      "name": "09 - Dado de baja: tampoco esta en el catalogo  [200 vacio]",
+      "description": "totalElements = 0. La query del catalogo filtra por p.active = true y ese filtro no es opcional.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/products?name=beefeater",
+      "parameters": [
+        { "name": "name", "value": "beefeater" }
+      ],
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_seller_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 2090
+    },
+    {
+      "_id": "req_v10_reactivar",
+      "_type": "request",
+      "parentId": "fld_vendedor",
+      "name": "10 - Reactivar el producto  [200]",
+      "description": "El PUT con active true lo devuelve al catalogo. Es el unico camino de alta: el DELETE no puede.",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/products/{% response 'body', 'req_prod_create', '$.id', 'no-history' %}",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_seller_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Gin Beefeater London Dry 700ml\",\n  \"description\": \"Gin ingles clasico, botanicos citricos y enebro marcado. Ideal para gin tonic.\",\n  \"price\": 26900,\n  \"stock\": 45,\n  \"categoryId\": 6,\n  \"discountPercentage\": 20,\n  \"active\": true\n}"
+      },
+      "metaSortKey": 2100
+    },
+    {
+      "_id": "req_v11_ventas_seller",
+      "_type": "request",
+      "parentId": "fld_vendedor",
+      "name": "11 - Ventas del local (SELLER)  [200]",
+      "description": "Todos los pedidos de la tienda. Aca se ve la orden que hizo Lucia en el recorrido 1.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/orders/all",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_seller_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 2110
+    },
+    {
+      "_id": "req_admin_login",
+      "_type": "request",
+      "parentId": "fld_vendedor",
+      "name": "12 - Login Admin (ADMIN)  [200 + token]",
+      "description": "A partir de aca, lo que solo puede hacer el administrador.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/auth/authenticate",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"admin@bebidas.com\",\n  \"password\": \"admin123\"\n}"
+      },
+      "metaSortKey": 2120
+    },
+    {
+      "_id": "req_cat_create",
+      "_type": "request",
+      "parentId": "fld_vendedor",
+      "name": "13 - Alta de categoria  [201]",
+      "description": "Solo ADMIN. Devuelve 201 con Location.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/categories",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_admin_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"description\": \"Vodka\"\n}"
+      },
+      "metaSortKey": 2130
+    },
+    {
+      "_id": "req_v14_cat_editar",
+      "_type": "request",
+      "parentId": "fld_vendedor",
+      "name": "14 - Editar la categoria  [200]",
+      "description": "El id sale de la respuesta del alta.",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/categories/{% response 'body', 'req_cat_create', '$.id', 'no-history' %}",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_admin_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"description\": \"Vodka y Tequila\"\n}"
+      },
+      "metaSortKey": 2140
+    },
+    {
+      "_id": "req_v15_cat_listar",
+      "_type": "request",
+      "parentId": "fld_vendedor",
+      "name": "15 - Listado de categorias  [200]",
+      "description": "Ahora son 9, con la nueva ya renombrada.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/categories",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_admin_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 2150
+    },
+    {
+      "_id": "req_v16_cat_baja",
+      "_type": "request",
+      "parentId": "fld_vendedor",
+      "name": "16 - Baja de la categoria  [204]",
+      "description": "Se puede borrar porque no tiene productos asociados. La que si tiene productos da 409 (carpeta 3).",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/categories/{% response 'body', 'req_cat_create', '$.id', 'no-history' %}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_admin_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 2160
+    },
+    {
+      "_id": "req_v17_usuarios",
+      "_type": "request",
+      "parentId": "fld_vendedor",
+      "name": "17 - Listado de usuarios (solo ADMIN)  [200]",
+      "description": "Ni el comprador ni el vendedor pueden entrar aca.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/users",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_admin_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 2170
+    },
+    {
+      "_id": "req_v18_usuario_detalle",
+      "_type": "request",
+      "parentId": "fld_vendedor",
+      "name": "18 - Detalle de un usuario  [200]",
+      "description": "Lucia, la compradora del recorrido 1.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/users/2",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_admin_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 2180
+    },
+    {
+      "_id": "req_v19_ventas_admin",
+      "_type": "request",
+      "parentId": "fld_vendedor",
+      "name": "19 - Ventas del local (ADMIN)  [200]",
+      "description": "El admin ve lo mismo que el vendedor. Cierra el recorrido.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/orders/all",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_admin_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 2190
+    },
+
+    {
+      "_id": "fld_errores",
+      "_type": "request_group",
+      "parentId": "wrk_tpo_bebidas",
+      "name": "3 - Validaciones y permisos",
+      "description": "Los caminos de error. Cada uno devuelve su status y su mensaje. Se pueden mandar en cualquier orden.",
+      "metaSortKey": -100
+    },
+    {
+      "_id": "req_e01_sin_token",
+      "_type": "request",
+      "parentId": "fld_errores",
+      "name": "01 - Sin token  [403]",
+      "description": "Sin Authorization no se pasa del filtro JWT. El controller nunca se ejecuta.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/products",
+      "headers": [],
+      "body": {},
+      "metaSortKey": 3010
+    },
+    {
+      "_id": "req_e02_prod_inexistente",
+      "_type": "request",
+      "parentId": "fld_errores",
+      "name": "02 - Producto inexistente  [404]",
+      "description": "ProductNotFoundException. El mensaje viaja en el body gracias a server.error.include-message=always.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/products/999",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 3020
+    },
+    {
+      "_id": "req_e03_buyer_crea_producto",
+      "_type": "request",
+      "parentId": "fld_errores",
+      "name": "03 - Un comprador no puede crear productos  [403]",
+      "description": "Lo corta @PreAuthorize antes de entrar al metodo. Es permiso por ROL.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/products",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Producto trucho\",\n  \"description\": \"No deberia poder crearlo\",\n  \"price\": 1000,\n  \"stock\": 5,\n  \"categoryId\": 1\n}"
+      },
+      "metaSortKey": 3030
+    },
+    {
+      "_id": "req_e04_producto_ajeno",
+      "_type": "request",
+      "parentId": "fld_errores",
+      "name": "04 - Un vendedor no puede editar un producto ajeno  [403]",
+      "description": "El producto 1 es del admin. Bruno tiene el rol, pero no es el dueno: lo corta validateOwner en el service. Es permiso por DATO.",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/products/1",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_seller_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Intento de edicion ajena\",\n  \"description\": \"No deberia poder editarlo\",\n  \"price\": 1,\n  \"stock\": 1,\n  \"categoryId\": 1\n}"
+      },
+      "metaSortKey": 3040
+    },
+    {
+      "_id": "req_e05_buyer_ventas",
+      "_type": "request",
+      "parentId": "fld_errores",
+      "name": "05 - Un comprador no puede ver las ventas del local  [403]",
+      "description": "GET /orders/all es solo ADMIN o SELLER. El comprador solo ve GET /orders, que son los suyos.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/orders/all",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 3050
+    },
+    {
+      "_id": "req_e06_pedido_ajeno",
+      "_type": "request",
+      "parentId": "fld_errores",
+      "name": "06 - Un vendedor no puede abrir el pedido de otro  [403]",
+      "description": "NotOrderOwnerException. Solo el dueno del pedido o el admin lo pueden ver por id.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/orders/{% response 'body', 'req_checkout', '$.id', 'no-history' %}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_seller_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 3060
+    },
+    {
+      "_id": "req_e07_cantidad_invalida",
+      "_type": "request",
+      "parentId": "fld_errores",
+      "name": "07 - Cantidad invalida  [400]",
+      "description": "InvalidQuantityException: la cantidad tiene que ser mayor a cero.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/cart/items",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"productId\": 1,\n  \"quantity\": 0\n}"
+      },
+      "metaSortKey": 3070
+    },
+    {
+      "_id": "req_e08_sin_stock",
+      "_type": "request",
+      "parentId": "fld_errores",
+      "name": "08 - Sin stock  [409]",
+      "description": "El producto 7 tiene stock 0. InsufficientStockException devuelve 409 Conflict.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/cart/items",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"productId\": 7,\n  \"quantity\": 1\n}"
+      },
+      "metaSortKey": 3080
+    },
+    {
+      "_id": "req_e09_carrito_prod_inexistente",
+      "_type": "request",
+      "parentId": "fld_errores",
+      "name": "09 - Agregar al carrito un producto que no existe  [404]",
+      "description": "Mismo error que un producto dado de baja: para el carrito son el mismo caso.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/cart/items",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"productId\": 999,\n  \"quantity\": 1\n}"
+      },
+      "metaSortKey": 3090
+    },
+    {
+      "_id": "req_e10_vaciar_carrito",
+      "_type": "request",
+      "parentId": "fld_errores",
+      "name": "10 - Vaciar el carrito  [204]  (preparacion del 11)",
+      "description": "Se manda antes del checkout vacio, para que el carrito quede sin items.",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/cart",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 3100
+    },
+    {
+      "_id": "req_e11_checkout_vacio",
+      "_type": "request",
+      "parentId": "fld_errores",
+      "name": "11 - Checkout con el carrito vacio  [400]",
+      "description": "EmptyCartException. Mandar despues del 10.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/cart/checkout",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 3110
+    },
+    {
+      "_id": "req_e12_email_duplicado",
+      "_type": "request",
+      "parentId": "fld_errores",
+      "name": "12 - Registro con un email ya usado  [400]",
+      "description": "UserDuplicateException. Sin esta validacion se insertaban dos usuarios con el mismo mail y despues fallaba todo el login.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/auth/register",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Lucia\",\n  \"surname\": \"Impostora\",\n  \"email\": \"lucia@mail.com\",\n  \"password\": \"otraclave\",\n  \"role\": \"BUYER\"\n}"
+      },
+      "metaSortKey": 3120
+    },
+    {
+      "_id": "req_e13_registro_admin",
+      "_type": "request",
+      "parentId": "fld_errores",
+      "name": "13 - Nadie se puede registrar como ADMIN  [400]",
+      "description": "Escalada de privilegios bloqueada: si se pudiera, cualquiera anulaba todos los @PreAuthorize.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/auth/register",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Hacker\",\n  \"surname\": \"Anonimo\",\n  \"email\": \"hacker@mail.com\",\n  \"password\": \"hacker123\",\n  \"role\": \"ADMIN\"\n}"
+      },
+      "metaSortKey": 3130
+    },
+    {
+      "_id": "req_e14_categoria_duplicada",
+      "_type": "request",
+      "parentId": "fld_errores",
+      "name": "14 - Categoria duplicada  [400]",
+      "description": "CategoryDuplicateException: Vinos Tintos ya existe.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/categories",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_admin_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"description\": \"Vinos Tintos\"\n}"
+      },
+      "metaSortKey": 3140
+    },
+    {
+      "_id": "req_e15_categoria_con_productos",
+      "_type": "request",
+      "parentId": "fld_errores",
+      "name": "15 - Borrar una categoria con productos  [409]",
+      "description": "CategoryHasProductsException. Protege la integridad referencial: la categoria 1 tiene vinos cargados.",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/categories/1",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_admin_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 3150
+    },
+    {
+      "_id": "req_e16_producto_invalido",
+      "_type": "request",
+      "parentId": "fld_errores",
+      "name": "16 - Alta de producto con precio invalido  [400]",
+      "description": "InvalidProductException: el precio tiene que ser mayor a cero. Lo valida el service, no la capa web.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/products",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_seller_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Producto con precio invalido\",\n  \"description\": \"El precio no puede ser cero\",\n  \"price\": 0,\n  \"stock\": 10,\n  \"categoryId\": 6\n}"
+      },
+      "metaSortKey": 3160
+    },
+    {
+      "_id": "req_e17_categoria_inexistente",
+      "_type": "request",
+      "parentId": "fld_errores",
+      "name": "17 - Alta de producto con categoria inexistente  [404]",
+      "description": "CategoryNotFoundException: la categoria 999 no existe.",
+      "method": "POST",
+      "url": "{{ _.base_url }}/products",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_seller_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Producto sin categoria valida\",\n  \"description\": \"La categoria 999 no existe\",\n  \"price\": 5000,\n  \"stock\": 10,\n  \"categoryId\": 999\n}"
+      },
+      "metaSortKey": 3170
+    },
+    {
+      "_id": "req_e18_buyer_usuarios",
+      "_type": "request",
+      "parentId": "fld_errores",
+      "name": "18 - Un comprador no puede listar usuarios  [403]",
+      "description": "GET /users es exclusivo de ADMIN.",
+      "method": "GET",
+      "url": "{{ _.base_url }}/users",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {% response 'body', 'req_buyer_login', '$.access_token', 'no-history' %}" }
+      ],
+      "body": {},
+      "metaSortKey": 3180
+    }
+  ]
+}
