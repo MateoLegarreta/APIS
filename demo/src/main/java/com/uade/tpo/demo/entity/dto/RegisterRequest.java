@@ -1,7 +1,5 @@
 package com.uade.tpo.demo.entity.dto;
 
-import com.uade.tpo.demo.entity.Role;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,5 +15,4 @@ public class RegisterRequest {
     private String surname;
     private String email;
     private String password;
-    private Role role;
 }

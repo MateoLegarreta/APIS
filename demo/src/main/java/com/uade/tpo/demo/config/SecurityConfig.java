@@ -4,6 +4,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -31,6 +32,8 @@ public class SecurityConfig {
                                 .authorizeHttpRequests(req -> req
                                 .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.FORWARD).permitAll()
                                 .requestMatchers("/api/v1/auth/**").permitAll()
+                                // El catalogo se puede ver sin iniciar sesion, pero solo de lectura
+                                .requestMatchers(HttpMethod.GET, "/products/**", "/categories/**").permitAll()
                                 .anyRequest().authenticated())
                                                                                         
                                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))

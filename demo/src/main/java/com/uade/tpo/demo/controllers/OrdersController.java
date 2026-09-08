@@ -34,7 +34,8 @@ public class OrdersController {
         return ResponseEntity.ok(orderService.getMyOrderById(orderId));
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN','SELLER')")
+    // Trae todas las ordenes de la tienda, solo para el admin
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/all")
     public ResponseEntity<List<Order>> getAllOrders() {
         return ResponseEntity.ok(orderService.getAllOrders());

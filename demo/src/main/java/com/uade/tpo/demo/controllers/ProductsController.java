@@ -21,7 +21,6 @@ import com.uade.tpo.demo.entity.Product;
 import com.uade.tpo.demo.entity.dto.ProductRequest;
 import com.uade.tpo.demo.exceptions.CategoryNotFoundException;
 import com.uade.tpo.demo.exceptions.InvalidProductException;
-import com.uade.tpo.demo.exceptions.NotProductOwnerException;
 import com.uade.tpo.demo.exceptions.ProductNotFoundException;
 import com.uade.tpo.demo.service.ProductService;
 
@@ -59,8 +58,8 @@ public class ProductsController {
                 return ResponseEntity.ok(productService.getProductById(productId));
     }
 
-    // Solo un vendedor o el admin pueden crear productos nuevos
-    @PreAuthorize("hasAnyAuthority('SELLER','ADMIN')")
+    // Solo el admin puede crear productos nuevos
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
     public ResponseEntity<Product> createProduct(@RequestBody ProductRequest productRequest)
             throws CategoryNotFoundException, InvalidProductException {
@@ -68,21 +67,21 @@ public class ProductsController {
         return ResponseEntity.created(URI.create("/products/" + result.getId())).body(result);
     }
 
-    // Solo un vendedor o el admin pueden editar un producto
-    @PreAuthorize("hasAnyAuthority('SELLER','ADMIN')")
+    // Solo el admin puede editar un producto
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/{productId}")
     public ResponseEntity<Product> updateProduct(
             @PathVariable Long productId,
             @RequestBody ProductRequest productRequest)
-            throws ProductNotFoundException, CategoryNotFoundException, InvalidProductException, NotProductOwnerException {
+            throws ProductNotFoundException, CategoryNotFoundException, InvalidProductException {
         return ResponseEntity.ok(productService.updateProduct(productId, productRequest));
     }
 
-    // Solo un vendedor o el admin pueden borrar un producto
-    @PreAuthorize("hasAnyAuthority('SELLER','ADMIN')")
+    // Solo el admin puede dar de baja un producto
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{productId}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long productId)
-            throws ProductNotFoundException, NotProductOwnerException {
+            throws ProductNotFoundException {
         productService.deleteProduct(productId);
         return ResponseEntity.noContent().build();
     }

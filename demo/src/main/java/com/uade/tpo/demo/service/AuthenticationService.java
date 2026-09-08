@@ -6,7 +6,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.uade.tpo.demo.exceptions.UserDuplicateException;
-import com.uade.tpo.demo.exceptions.InvalidUserException;
 import com.uade.tpo.demo.config.JwtService;
 import com.uade.tpo.demo.entity.User;
 import com.uade.tpo.demo.entity.dto.AuthenticationRequest;
@@ -26,25 +25,19 @@ public class AuthenticationService {
         private final AuthenticationManager authenticationManager;
 
         // Crea un usuario nuevo y le devuelve un token para que quede logueado.
-        // No permite emails repetidos ni registrarse directamente como admin
+        // Siempre lo da de alta como comprador: el admin lo crea AdminInitializer
         public AuthenticationResponse register(RegisterRequest request)
-                        throws UserDuplicateException, InvalidUserException {
+                        throws UserDuplicateException {
 
                 if (repository.existsByEmail(request.getEmail()))
                         throw new UserDuplicateException();
-
-                Role role = request.getRole();
-                if (role == null)
-                        role = Role.BUYER;
-                if (role == Role.ADMIN)
-                        throw new InvalidUserException();
 
                 var user = User.builder()
                                 .name(request.getName())
                                 .surname(request.getSurname())
                                 .email(request.getEmail())
                                 .password(passwordEncoder.encode(request.getPassword()))
-                                .role(role)
+                                .role(Role.BUYER)
                                 .build();
 
                         repository.save(user);

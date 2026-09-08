@@ -5,7 +5,6 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.uade.tpo.demo.entity.Category;
@@ -13,15 +12,12 @@ import com.uade.tpo.demo.entity.Product;
 import com.uade.tpo.demo.entity.dto.ProductRequest;
 import com.uade.tpo.demo.exceptions.CategoryNotFoundException;
 import com.uade.tpo.demo.exceptions.InvalidProductException;
-import com.uade.tpo.demo.exceptions.NotProductOwnerException;
 import com.uade.tpo.demo.exceptions.ProductNotFoundException;
 import com.uade.tpo.demo.repository.CartItemRepository;
 import com.uade.tpo.demo.repository.CategoryRepository;
 import com.uade.tpo.demo.repository.ProductRepository;
 
 import org.springframework.transaction.annotation.Transactional;
-import com.uade.tpo.demo.entity.User;
-import com.uade.tpo.demo.entity.Role;
 
 // Maneja los productos: crearlos, editarlos, borrarlos y buscarlos
 @Service
@@ -48,7 +44,7 @@ public class ProductServiceImpl implements ProductService {
               .orElseThrow(ProductNotFoundException::new);
   }
 
-    // Crea un producto nuevo, con el usuario logueado como vendedor
+    // Crea un producto nuevo dentro de la categoria indicada
     public Product createProduct(ProductRequest productRequest)
             throws CategoryNotFoundException, InvalidProductException {
 
@@ -63,19 +59,17 @@ public class ProductServiceImpl implements ProductService {
             product.setDiscountPercentage(productRequest.getDiscountPercentage());
         product.setStock(productRequest.getStock());
         product.setCategory(category);
-        product.setSeller(getLoggedUser());
 
         return productRepository.save(product);
     }
 
-    // Edita un producto, solo si es del vendedor logueado (o si es admin)
+    // Edita un producto existente, incluido darlo de baja o de alta
     public Product updateProduct(Long productId, ProductRequest productRequest)
-            throws ProductNotFoundException, CategoryNotFoundException, InvalidProductException, NotProductOwnerException {
+            throws ProductNotFoundException, CategoryNotFoundException, InvalidProductException {
 
         Optional<Product> result = productRepository.findById(productId);
         if (result.isEmpty())
             throw new ProductNotFoundException();
-        validateOwner(result.get());
         validateProduct(productRequest);
         Category category = findCategory(productRequest.getCategoryId());
 
@@ -98,14 +92,13 @@ public class ProductServiceImpl implements ProductService {
     // Tambien lo saca de los carritos ajenos para que nadie compre algo dado de baja
     @Transactional
     public void deleteProduct(Long productId)
-            throws ProductNotFoundException, NotProductOwnerException {
+            throws ProductNotFoundException {
 
         Optional<Product> result = productRepository.findById(productId);
         if (result.isEmpty())
             throw new ProductNotFoundException();
 
         Product product = result.get();
-        validateOwner(product);
 
         cartItemRepository.deleteByProductId(productId);
 
@@ -143,22 +136,5 @@ public class ProductServiceImpl implements ProductService {
             throw new CategoryNotFoundException();
 
         return category.get();
-    }
-
-    // Obtiene el usuario que esta logueado en este momento
-    private User getLoggedUser() {
-        return (User) SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getPrincipal();
-    }
-
-    // Revisa que el producto sea del vendedor logueado, salvo que sea admin
-    private void validateOwner(Product product) throws NotProductOwnerException {
-        User loggedUser = getLoggedUser();
-
-        if (loggedUser.getRole() == Role.ADMIN)
-            return;
-        if (!product.getSeller().getId().equals(loggedUser.getId()))
-            throw new NotProductOwnerException();
     }
 }
