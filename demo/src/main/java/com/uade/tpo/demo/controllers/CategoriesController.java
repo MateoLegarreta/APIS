@@ -22,9 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
 
-import com.uade.tpo.demo.entity.dto.MessageResponse;
 import com.uade.tpo.demo.exceptions.CategoryNotFoundException;
 import com.uade.tpo.demo.exceptions.CategoryHasProductsException;
 
@@ -71,18 +69,12 @@ public class CategoriesController {
     public ResponseEntity<Category> updateCategory(
             @PathVariable Long categoryId,
             @RequestBody CategoryRequest categoryRequest)
-            throws CategoryDuplicateException, CategoryNotFoundException {
+            throws CategoryDuplicateException, CategoryNotFoundException, CategoryHasProductsException {
         Category result = categoryService.updateCategory(categoryId, categoryRequest.getDescription(),
                 categoryRequest.getActive());
         return ResponseEntity.ok(result);
     }
 
-    // Solo el admin puede dar de baja una categoria
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @DeleteMapping("/{categoryId}")
-    public ResponseEntity<MessageResponse> deleteCategory(@PathVariable Long categoryId)
-            throws CategoryNotFoundException, CategoryHasProductsException {
-        categoryService.deleteCategory(categoryId);
-        return ResponseEntity.ok(new MessageResponse("Categoria dada de baja"));
-    }
+    // La baja de una categoria se hace con el PUT de arriba, mandando "active": false.
+    // No se borra la fila para no romper los productos que la usan
 }

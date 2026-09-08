@@ -53,6 +53,12 @@ public class User implements UserDetails {
     @Column (nullable = false)
     private String password;
 
+    // Permite dar de baja al usuario sin borrar la fila, para no romper sus
+    // compras. @Builder.Default hace que el builder tambien arranque en true
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean active = true;
+
     // Spring Security usa el email como nombre de usuario para el login
     @JsonIgnore
     @Override
@@ -66,8 +72,8 @@ public class User implements UserDetails {
         return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
-    // Estos cuatro metodos son requeridos por Spring Security, ac no manejamos
-    // cuentas vencidas, bloqueadas ni deshabilitadas, por eso siempre dan true
+    // Estos tres metodos son requeridos por Spring Security, aca no manejamos
+    // cuentas vencidas ni bloqueadas, por eso siempre dan true
     @JsonIgnore
     public boolean isAccountNonExpired() {
         return true;
@@ -83,8 +89,9 @@ public class User implements UserDetails {
         return true;
     }
 
+    // Spring Security lo consulta en cada login: si da falso, no deja entrar
     @JsonIgnore
     public boolean isEnabled() {
-        return true;
+        return Boolean.TRUE.equals(active);
     }
 }

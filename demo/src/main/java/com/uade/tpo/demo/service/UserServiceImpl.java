@@ -21,6 +21,8 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserRepository userRepository;
 
+    // A diferencia del catalogo, esta lista si muestra los dados de baja:
+    // es la herramienta del admin y los necesita ver para reactivarlos
     public Page<User> getUsers(PageRequest pageRequest) {
 
         return userRepository.findAll(pageRequest);
@@ -31,7 +33,8 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(userId);
     }
 
-    // Edita los datos de un usuario, si el email nuevo no esta usado por otro
+    // Edita los datos de un usuario, y permite darlo de baja o de alta.
+    // La baja es logica: la fila queda para no romper sus compras
     public User updateUser(Long userId, UserRequest userRequest)
             throws UserNotFoundException, InvalidUserException, UserDuplicateException {
 
@@ -48,16 +51,11 @@ public class UserServiceImpl implements UserService {
         user.setEmail(userRequest.getEmail());
         user.setName(userRequest.getName());
         user.setSurname(userRequest.getSurname());
+        // Permite dar de baja o volver a dar de alta al usuario
+        if (userRequest.getActive() != null)
+            user.setActive(userRequest.getActive());
 
         return userRepository.save(user);
-    }
-
-    // Borra un usuario
-    public void deleteUser(Long userId) throws UserNotFoundException {
-        if(!userRepository.existsById(userId))
-            throw new UserNotFoundException();
-
-        userRepository.deleteById(userId);
     }
 
     // Revisa que los datos del usuario tengan sentido antes de guardarlos

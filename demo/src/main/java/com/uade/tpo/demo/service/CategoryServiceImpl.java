@@ -41,9 +41,10 @@ public class CategoryServiceImpl implements CategoryService {
         throw new CategoryDuplicateException();
     }
 
-     // Cambia la descripcion de una categoria, y permite darla de baja o de alta
+     // Cambia la descripcion de una categoria, y permite darla de baja o de alta.
+     // No deja retirar una categoria que todavia tiene productos a la venta
      public Category updateCategory(Long categoryId, String description, Boolean active)
-          throws CategoryNotFoundException, CategoryDuplicateException {
+          throws CategoryNotFoundException, CategoryDuplicateException, CategoryHasProductsException {
 
       Optional<Category> result = categoryRepository.findById(categoryId);
       if (result.isEmpty())
@@ -56,28 +57,17 @@ public class CategoryServiceImpl implements CategoryService {
           throw new CategoryDuplicateException();
 
       Category category = result.get();
+      // Se valida antes de tocar nada: solo importa si la baja ocurre ahora
+      boolean estabaActiva = Boolean.TRUE.equals(category.getActive());
+      if (estabaActiva && Boolean.FALSE.equals(active)
+              && productRepository.existsByCategoryIdAndActiveTrue(categoryId))
+          throw new CategoryHasProductsException();
+
       category.setDescription(description);
-      // Permite volver a dar de alta una categoria dada de baja
+      // Permite dar de baja o volver a dar de alta la categoria
       if (active != null)
           category.setActive(active);
       return categoryRepository.save(category);
   }
-
-    // Da de baja la categoria en vez de borrarla, para no romper los productos
-    // que la usan. No se puede dar de baja si todavia tiene productos a la venta
-    public void deleteCategory(Long categoryId)
-            throws CategoryNotFoundException, CategoryHasProductsException {
-
-        Optional<Category> result = categoryRepository.findById(categoryId);
-        if (result.isEmpty())
-            throw new CategoryNotFoundException();
-
-        if (productRepository.existsByCategoryIdAndActiveTrue(categoryId))
-            throw new CategoryHasProductsException();
-
-        Category category = result.get();
-        category.setActive(false);
-        categoryRepository.save(category);
-    }
 
 }

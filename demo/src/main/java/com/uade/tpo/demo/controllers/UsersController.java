@@ -7,7 +7,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.uade.tpo.demo.entity.User;
 import com.uade.tpo.demo.entity.dto.UserRequest;
-import com.uade.tpo.demo.entity.dto.MessageResponse;
 import com.uade.tpo.demo.exceptions.InvalidUserException;
 import com.uade.tpo.demo.exceptions.UserDuplicateException;
 import com.uade.tpo.demo.exceptions.UserNotFoundException;
@@ -65,12 +63,6 @@ public class UsersController {
         return ResponseEntity.ok(result);
     }
 
-    // Borra un usuario
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<MessageResponse> deleteUser(@PathVariable Long userId)
-            throws UserNotFoundException {
-        userService.deleteUser(userId);
-        return ResponseEntity.ok(new MessageResponse("Usuario eliminado"));
-    }
+    // La baja de un usuario se hace con el PUT de arriba, mandando "active": false.
+    // No se borra la fila para no romper sus compras
 }
