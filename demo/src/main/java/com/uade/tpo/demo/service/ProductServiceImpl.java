@@ -63,7 +63,9 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.save(product);
     }
 
-    // Edita un producto existente, incluido darlo de baja o de alta
+    // Edita un producto existente. Si en esta edicion pasa de activo a inactivo,
+    // tambien lo saca de los carritos para que nadie compre algo dado de baja
+    @Transactional
     public Product updateProduct(Long productId, ProductRequest productRequest)
             throws ProductNotFoundException, CategoryNotFoundException, InvalidProductException {
 
@@ -74,6 +76,9 @@ public class ProductServiceImpl implements ProductService {
         Category category = findCategory(productRequest.getCategoryId());
 
         Product product = result.get();
+        // Se guarda el estado previo para saber si esta edicion lo da de baja
+        boolean estabaActivo = Boolean.TRUE.equals(product.getActive());
+
         product.setName(productRequest.getName());
         product.setDescription(productRequest.getDescription());
         product.setPrice(productRequest.getPrice());
@@ -85,25 +90,11 @@ public class ProductServiceImpl implements ProductService {
         if (productRequest.getActive() != null)
             product.setActive(productRequest.getActive());
 
+        // Solo limpia los carritos cuando la baja ocurre en esta edicion
+        if (estabaActivo && Boolean.FALSE.equals(product.getActive()))
+            cartItemRepository.deleteByProductId(productId);
+
         return productRepository.save(product);
-    }
-
-    // Da de baja el producto en vez de borrarlo, para no romper las compras ya hechas.
-    // Tambien lo saca de los carritos ajenos para que nadie compre algo dado de baja
-    @Transactional
-    public void deleteProduct(Long productId)
-            throws ProductNotFoundException {
-
-        Optional<Product> result = productRepository.findById(productId);
-        if (result.isEmpty())
-            throw new ProductNotFoundException();
-
-        Product product = result.get();
-
-        cartItemRepository.deleteByProductId(productId);
-
-        product.setActive(false);
-        productRepository.save(product);
     }
 
     // Revisa que los datos del producto tengan sentido antes de guardarlo

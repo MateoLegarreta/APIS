@@ -7,7 +7,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -77,12 +76,6 @@ public class ProductsController {
         return ResponseEntity.ok(productService.updateProduct(productId, productRequest));
     }
 
-    // Solo el admin puede dar de baja un producto
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @DeleteMapping("/{productId}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long productId)
-            throws ProductNotFoundException {
-        productService.deleteProduct(productId);
-        return ResponseEntity.noContent().build();
-    }
+    // La baja de un producto se hace con el PUT de arriba, mandando "active": false.
+    // De esa forma hay un solo camino y siempre limpia los carritos
 }

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.uade.tpo.demo.entity.User;
 import com.uade.tpo.demo.entity.dto.UserRequest;
+import com.uade.tpo.demo.entity.dto.MessageResponse;
 import com.uade.tpo.demo.exceptions.InvalidUserException;
 import com.uade.tpo.demo.exceptions.UserDuplicateException;
 import com.uade.tpo.demo.exceptions.UserNotFoundException;
@@ -67,9 +68,9 @@ public class UsersController {
     // Borra un usuario
     @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long userId)
+    public ResponseEntity<MessageResponse> deleteUser(@PathVariable Long userId)
             throws UserNotFoundException {
         userService.deleteUser(userId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(new MessageResponse("Usuario eliminado"));
     }
 }

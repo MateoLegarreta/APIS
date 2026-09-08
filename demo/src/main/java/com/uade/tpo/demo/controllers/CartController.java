@@ -17,6 +17,7 @@ import com.uade.tpo.demo.entity.Order;
 import com.uade.tpo.demo.entity.User;
 import com.uade.tpo.demo.entity.dto.AddCartItemRequest;
 import com.uade.tpo.demo.entity.dto.CartResponse;
+import com.uade.tpo.demo.entity.dto.MessageResponse;
 import com.uade.tpo.demo.entity.dto.OrderResponse;
 import com.uade.tpo.demo.entity.dto.UpdateCartItemRequest;
 import com.uade.tpo.demo.exceptions.CartItemNotFoundException;
@@ -78,11 +79,11 @@ public class CartController {
 
     // Vacia el carrito completo
     @DeleteMapping
-    public ResponseEntity<Void> clearCart(@AuthenticationPrincipal User user)
+    public ResponseEntity<MessageResponse> clearCart(@AuthenticationPrincipal User user)
             throws CartNotFoundException {
 
         cartService.clearCart(user.getId());
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(new MessageResponse("Carrito vaciado"));
     }
 
     // Confirma la compra: crea el pedido con lo que hay en el carrito y despues lo vacia

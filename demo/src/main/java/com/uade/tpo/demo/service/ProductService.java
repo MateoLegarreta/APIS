@@ -24,5 +24,4 @@ public interface ProductService {
     public Product updateProduct(Long productId, ProductRequest productRequest)
             throws ProductNotFoundException, CategoryNotFoundException, InvalidProductException;
 
-    public void deleteProduct(Long productId) throws ProductNotFoundException;
 }

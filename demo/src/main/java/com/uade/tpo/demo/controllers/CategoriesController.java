@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 
+import com.uade.tpo.demo.entity.dto.MessageResponse;
 import com.uade.tpo.demo.exceptions.CategoryNotFoundException;
 import com.uade.tpo.demo.exceptions.CategoryHasProductsException;
 
@@ -79,9 +80,9 @@ public class CategoriesController {
     // Solo el admin puede dar de baja una categoria
     @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{categoryId}")
-    public ResponseEntity<Void> deleteCategory(@PathVariable Long categoryId)
+    public ResponseEntity<MessageResponse> deleteCategory(@PathVariable Long categoryId)
             throws CategoryNotFoundException, CategoryHasProductsException {
         categoryService.deleteCategory(categoryId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(new MessageResponse("Categoria dada de baja"));
     }
 }
