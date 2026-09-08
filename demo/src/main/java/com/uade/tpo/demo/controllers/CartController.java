@@ -16,6 +16,8 @@ import com.uade.tpo.demo.entity.Cart;
 import com.uade.tpo.demo.entity.Order;
 import com.uade.tpo.demo.entity.User;
 import com.uade.tpo.demo.entity.dto.AddCartItemRequest;
+import com.uade.tpo.demo.entity.dto.CartResponse;
+import com.uade.tpo.demo.entity.dto.OrderResponse;
 import com.uade.tpo.demo.entity.dto.UpdateCartItemRequest;
 import com.uade.tpo.demo.exceptions.CartItemNotFoundException;
 import com.uade.tpo.demo.exceptions.CartNotFoundException;
@@ -35,24 +37,24 @@ public class CartController {
 
     // Muestra el carrito del usuario logueado
     @GetMapping
-    public ResponseEntity<Cart> getCart(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(cartService.getCartByUser(user.getId()));
+    public ResponseEntity<CartResponse> getCart(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(CartResponse.from(cartService.getCartByUser(user.getId())));
     }
 
     // Agrega un producto al carrito
     @PostMapping("/items")
-    public ResponseEntity<Cart> addItem(
+    public ResponseEntity<CartResponse> addItem(
             @AuthenticationPrincipal User user,
             @RequestBody AddCartItemRequest request)
             throws ProductNotFoundException, InvalidQuantityException, InsufficientStockException {
 
         Cart cart = cartService.addProductToCart(user.getId(), request.getProductId(), request.getQuantity());
-        return ResponseEntity.ok(cart);
+        return ResponseEntity.ok(CartResponse.from(cart));
     }
 
     // Cambia la cantidad de un producto que ya esta en el carrito
     @PutMapping("/items/{productId}")
-    public ResponseEntity<Cart> updateItem(
+    public ResponseEntity<CartResponse> updateItem(
             @AuthenticationPrincipal User user,
             @PathVariable Long productId,
             @RequestBody UpdateCartItemRequest request)
@@ -60,18 +62,18 @@ public class CartController {
             InsufficientStockException {
 
         Cart cart = cartService.updateCartItem(user.getId(), productId, request.getQuantity());
-        return ResponseEntity.ok(cart);
+        return ResponseEntity.ok(CartResponse.from(cart));
     }
 
     // Saca un producto del carrito
     @DeleteMapping("/items/{productId}")
-    public ResponseEntity<Cart> removeItem(
+    public ResponseEntity<CartResponse> removeItem(
             @AuthenticationPrincipal User user,
             @PathVariable Long productId)
             throws CartNotFoundException, CartItemNotFoundException {
 
         Cart cart = cartService.removeProductFromCart(user.getId(), productId);
-        return ResponseEntity.ok(cart);
+        return ResponseEntity.ok(CartResponse.from(cart));
     }
 
     // Vacia el carrito completo
@@ -85,10 +87,10 @@ public class CartController {
 
     // Confirma la compra: crea el pedido con lo que hay en el carrito y despues lo vacia
     @PostMapping("/checkout")
-    public ResponseEntity<Order> checkout(@AuthenticationPrincipal User user)
+    public ResponseEntity<OrderResponse> checkout(@AuthenticationPrincipal User user)
             throws CartNotFoundException, EmptyCartException, InsufficientStockException {
 
         Order order = cartService.checkout(user.getId());
-        return ResponseEntity.ok(order);
+        return ResponseEntity.ok(OrderResponse.from(order));
     }
 }
