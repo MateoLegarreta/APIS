@@ -22,12 +22,15 @@ public class CategoryServiceImpl implements CategoryService {
     @Autowired
     private ProductRepository productRepository;
 
+    // Lista solo las categorias dadas de alta
     public Page<Category> getCategories(PageRequest pageable) {
-        return categoryRepository.findAll(pageable);
+        return categoryRepository.findByActiveTrue(pageable);
     }
 
+    // Una categoria dada de baja no se puede consultar, igual que un producto
     public Optional<Category> getCategoryById(Long categoryId) {
-        return categoryRepository.findById(categoryId);
+        return categoryRepository.findById(categoryId)
+                .filter(category -> Boolean.TRUE.equals(category.getActive()));
     }
 
     // Crea una categoria nueva, si no hay otra con la misma descripcion
@@ -38,8 +41,8 @@ public class CategoryServiceImpl implements CategoryService {
         throw new CategoryDuplicateException();
     }
 
-     // Cambia la descripcion de una categoria, si no queda repetida con otra
-     public Category updateCategory(Long categoryId, String description)
+     // Cambia la descripcion de una categoria, y permite darla de baja o de alta
+     public Category updateCategory(Long categoryId, String description, Boolean active)
           throws CategoryNotFoundException, CategoryDuplicateException {
 
       Optional<Category> result = categoryRepository.findById(categoryId);
@@ -54,20 +57,27 @@ public class CategoryServiceImpl implements CategoryService {
 
       Category category = result.get();
       category.setDescription(description);
+      // Permite volver a dar de alta una categoria dada de baja
+      if (active != null)
+          category.setActive(active);
       return categoryRepository.save(category);
   }
 
-    // Borra una categoria, solo si no tiene productos usandola
+    // Da de baja la categoria en vez de borrarla, para no romper los productos
+    // que la usan. No se puede dar de baja si todavia tiene productos a la venta
     public void deleteCategory(Long categoryId)
             throws CategoryNotFoundException, CategoryHasProductsException {
 
-        if (!categoryRepository.existsById(categoryId))
+        Optional<Category> result = categoryRepository.findById(categoryId);
+        if (result.isEmpty())
             throw new CategoryNotFoundException();
 
         if (productRepository.existsByCategoryIdAndActiveTrue(categoryId))
             throw new CategoryHasProductsException();
 
-        categoryRepository.deleteById(categoryId);
+        Category category = result.get();
+        category.setActive(false);
+        categoryRepository.save(category);
     }
 
 }

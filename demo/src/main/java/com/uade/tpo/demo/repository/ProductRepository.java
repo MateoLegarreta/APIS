@@ -19,6 +19,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("""
             select p from Product p
             where p.active = true
+              and p.category.active = true
               and (:categoryId is null or p.category.id = :categoryId)
               and (:name is null or lower(p.name) like lower(concat('%', :name, '%')))
               and (:priceMin is null or p.price * (1 - p.discountPercentage / 100) >= :priceMin)

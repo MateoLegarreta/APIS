@@ -126,12 +126,14 @@ public class ProductServiceImpl implements ProductService {
             throw new InvalidProductException();
     }
 
-    // Busca la categoria del producto, y avisa si no existe
+    // Busca la categoria del producto, y avisa si no existe o esta dada de baja.
+    // No se pueden cargar productos en una categoria retirada
     private Category findCategory(Long categoryId) throws CategoryNotFoundException {
         if (categoryId == null)
             throw new CategoryNotFoundException();
 
-        Optional<Category> category = categoryRepository.findById(categoryId);
+        Optional<Category> category = categoryRepository.findById(categoryId)
+                .filter(c -> Boolean.TRUE.equals(c.getActive()));
         if (category.isEmpty())
             throw new CategoryNotFoundException();
 

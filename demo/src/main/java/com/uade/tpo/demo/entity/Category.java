@@ -26,5 +26,10 @@ public class Category {
     @Column
     private String description;
 
+    // Permite dar de baja la categoria sin borrar la fila, para no romper
+    // los productos que la estan usando
+    @Column(nullable = false)
+    private Boolean active = true;
+
    
 }

@@ -71,11 +71,12 @@ public class CategoriesController {
             @PathVariable Long categoryId,
             @RequestBody CategoryRequest categoryRequest)
             throws CategoryDuplicateException, CategoryNotFoundException {
-        Category result = categoryService.updateCategory(categoryId, categoryRequest.getDescription());
+        Category result = categoryService.updateCategory(categoryId, categoryRequest.getDescription(),
+                categoryRequest.getActive());
         return ResponseEntity.ok(result);
     }
 
-    // Solo el admin puede borrar una categoria
+    // Solo el admin puede dar de baja una categoria
     @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{categoryId}")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long categoryId)

@@ -19,7 +19,7 @@ public interface CategoryService {
 
     public Category createCategory(String description) throws CategoryDuplicateException;
      
-    public Category updateCategory(Long categoryId, String description)
+    public Category updateCategory(Long categoryId, String description, Boolean active)
           throws CategoryNotFoundException, CategoryDuplicateException;
 
       public void deleteCategory(Long categoryId)
