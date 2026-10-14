@@ -6,10 +6,10 @@ function Navigation() {
     <nav>
         <ul>
             <li>
-                <Link to='/home'>Inicio</Link>
+                <Link to='/'>Catálogo</Link>
             </li>
             <li>
-                <Link to='/contact'>Contacto</Link>
+                <Link to='/login'>Iniciar sesión</Link>
             </li>
         </ul>
     </nav>
