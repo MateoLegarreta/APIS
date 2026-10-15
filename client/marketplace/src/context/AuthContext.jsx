@@ -1,31 +1,35 @@
-import React from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { createContext, useContext, useState } from 'react'
 
-function Navigation() {
-  const { logueado, logout } = useAuth()
-  const navigate = useNavigate()
+// Guarda el estado de la sesion en un solo lugar, para que lo puedan usar
+// todos los componentes sin pasarselo por props de uno a otro
+const AuthContext = createContext()
 
-  // Cierra la sesion y lleva al login
-  function handleLogout() {
-    logout()
-    navigate('/login')
-  }
+export function AuthProvider({ children }) {
 
-  return (
-    <nav>
-        <ul>
-            <li>
-                <Link to='/'>Catálogo</Link>
-            </li>
-            <li>
-                {logueado
-                  ? <button onClick={handleLogout}>Cerrar sesión</button>
-                  : <Link to='/login'>Iniciar sesión</Link>}
-            </li>
-        </ul>
-    </nav>
-  )
+    // Arranca fijandose si ya habia un token guardado de antes,
+    // asi al refrescar la pagina no se pierde la sesion
+    const [logueado, setLogueado] = useState(localStorage.getItem('token') !== null)
+
+    // Guarda el token y marca que hay sesion
+    function login(token) {
+        localStorage.setItem('token', token)
+        setLogueado(true)
+    }
+
+    // Borra el token y marca que no hay sesion
+    function logout() {
+        localStorage.removeItem('token')
+        setLogueado(false)
+    }
+
+    return (
+        <AuthContext.Provider value={{ logueado, login, logout }}>
+            {children}
+        </AuthContext.Provider>
+    )
 }
 
-export default Navigation
+// Atajo para que cualquier componente lea la sesion con una sola linea
+export function useAuth() {
+    return useContext(AuthContext)
+}
