@@ -128,13 +128,7 @@ function Catalogo() {
         }
 
         return productos.map(producto => (
-            <CardProduct
-                key={producto.id}
-                id={producto.id}
-                nombre={producto.name}
-                precio={producto.finalPrice}
-                imageId={producto.imageId}
-            />
+            <CardProduct key={producto.id} producto={producto} />
         ))
     }
 
