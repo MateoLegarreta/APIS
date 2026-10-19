@@ -59,6 +59,7 @@ public class ProductServiceImpl implements ProductService {
             product.setDiscountPercentage(productRequest.getDiscountPercentage());
         product.setStock(productRequest.getStock());
         product.setCategory(category);
+        product.setImageId(productRequest.getImageId());
 
         return productRepository.save(product);
     }
@@ -86,6 +87,7 @@ public class ProductServiceImpl implements ProductService {
             product.setDiscountPercentage(productRequest.getDiscountPercentage());
         product.setStock(productRequest.getStock());
         product.setCategory(category);
+        product.setImageId(productRequest.getImageId());
         // Permite dar de baja o volver a dar de alta el producto
         if (productRequest.getActive() != null)
             product.setActive(productRequest.getActive());

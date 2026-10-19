@@ -124,6 +124,7 @@ function Catalogo() {
                     id={producto.id}
                     nombre={producto.name}
                     precio={producto.finalPrice}
+                    imageId={producto.imageId}
                 />
             ))}
 

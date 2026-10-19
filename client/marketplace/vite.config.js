@@ -8,6 +8,7 @@ export default defineConfig({
     proxy: {
        '/products':   'http://localhost:4002',
        '/categories': 'http://localhost:4002',
+       '/images':     'http://localhost:4002',
        '/cart':       'http://localhost:4002',
        '/orders':     'http://localhost:4002',
        '/users':      'http://localhost:4002',

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import Foto from './Foto'
 
 // Muestra todos los datos de un producto, que lo pide al backend por su id
 function ProductDetail() {
@@ -48,6 +49,7 @@ function ProductDetail() {
     return (
         <div>
             <h1>{producto.name}</h1>
+            <Foto imageId={producto.imageId} alt={producto.name} tamanio={300} />
             <p>{producto.description}</p>
             <p>Categoría: {producto.category?.description}</p>
 

@@ -41,6 +41,10 @@ public class Product {
     @Column(nullable = false)
     private Boolean active = true;
 
+    // Id de la foto en la tabla de imagenes. Puede quedar vacio, por eso no
+    // lleva nullable = false: los productos ya cargados no tienen ninguna
+    private Long imageId;
+
     // Precio ya con el descuento aplicado, no se guarda en la base
     @Transient
     public Double getFinalPrice() {

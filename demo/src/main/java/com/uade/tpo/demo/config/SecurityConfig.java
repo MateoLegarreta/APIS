@@ -38,7 +38,8 @@ public class SecurityConfig {
                                 .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.FORWARD).permitAll()
                                 .requestMatchers("/api/v1/auth/**").permitAll()
                                 // El catalogo se puede ver sin iniciar sesion, pero solo de lectura
-                                .requestMatchers(HttpMethod.GET, "/products/**", "/categories/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/products/**", "/categories/**", "/images/**")
+                                .permitAll()
                                 .anyRequest().authenticated())
                                                                                         
                                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))

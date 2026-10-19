@@ -11,4 +11,5 @@ public class ProductRequest {
     private Long categoryId;
     private Double discountPercentage;
     private Boolean active;
+    private Long imageId;
 }
