@@ -1,10 +1,10 @@
 import './App.css'
 import { Routes, Route } from 'react-router-dom'
 import Navigation from './components/Navigation'     
-import Catalogo from './components/Catalogo'
-import Login from './components/Login'
-import Register from './components/Register'
-import ProductDetail from './components/ProductDetail'
+import Catalogo from './views/Catalogo'
+import Login from './views/Login'
+import Register from './views/Register'
+import ProductDetail from './views/ProductDetail'
 
 function App() {
   return (

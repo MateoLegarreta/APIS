@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import Foto from './Foto'
+import Foto from '../components/Foto'
 
 // Muestra todos los datos de un producto, que lo pide al backend por su id
 function ProductDetail() {

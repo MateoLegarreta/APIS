@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import CardProduct from './CardProduct'
+import CardProduct from '../components/CardProduct'
 
 // Cuantos productos se muestran por pagina
 const TAMANIO = 6
