@@ -13,6 +13,12 @@ function Catalogo() {
     const [precioMin, setPrecioMin] = useState('')
     const [precioMax, setPrecioMax] = useState('')
 
+    // Arranca en true porque apenas se abre la pantalla ya se esta pidiendo
+    const [cargando, setCargando] = useState(true)
+
+    // Vacio significa que no hubo ningun problema
+    const [error, setError] = useState('')
+
     const [pagina, setPagina] = useState(0)
     const [totalPaginas, setTotalPaginas] = useState(0)
 
@@ -34,15 +40,29 @@ function Catalogo() {
     function pedirProductos(params, nroPagina) {
         params.append('page', nroPagina)
         params.append('size', TAMANIO)
+        setCargando(true)
+        setError('')
 
         fetch('/products?' + params.toString())
-            .then(response => response.json())
+            .then(response => {
+                // fetch no falla solo cuando el servidor contesta mal: para el
+                // la respuesta llego igual. Hay que mirar el ok a mano
+                if (!response.ok) {
+                    throw new Error('El servidor respondio con un ' + response.status)
+                }
+                return response.json()
+            })
             .then(data => {
                 setProductos(data.content)
                 setTotalPaginas(data.totalPages)
                 setPagina(nroPagina)
             })
-            .catch(error => console.error('Error al cargar los productos:', error));
+            .catch(fallo => {
+                setError('No se pudieron cargar los productos. Fijate que el backend este levantado.')
+                console.error(fallo)
+            })
+            // finally corre siempre, haya andado o haya fallado
+            .finally(() => setCargando(false));
     }
 
     // Una busqueda nueva siempre arranca en la primera pagina
@@ -73,10 +93,50 @@ function Catalogo() {
     // Y tambien las categorias, para llenar el desplegable
     useEffect(() => {
         fetch('/categories')
-            .then(response => response.json())
-            .then(data => setCategorias(data.content))
-            .catch(error => console.error('Error al cargar las categorias:', error));
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('El servidor respondio con un ' + response.status)
+                }
+                return response.json()
+            })
+            .then(data => {
+                // Solo se guarda si de verdad vino una lista. Si se guardara
+                // cualquier otra cosa, el .map del desplegable reventaria y se
+                // caeria toda la pantalla, no solo el desplegable
+                setCategorias(Array.isArray(data.content) ? data.content : [])
+            })
+            // Aca no hace falta avisarle al usuario: si este pedido fallo, el de
+            // productos fallo tambien y ese ya muestra el cartel
+            .catch(fallo => console.error('Error al cargar las categorias:', fallo));
     }, [])
+
+    // Tres situaciones distintas y una sola pantalla: conviene resolverlas
+    // con returns tempranos en vez de ternarios anidados
+    function mostrarProductos() {
+        if (cargando) {
+            return <p>Cargando productos...</p>
+        }
+
+        // Va antes del vacio: si fallo el pedido no sabemos si hay productos
+        // o no, y decir que no hay seria mentir
+        if (error !== '') {
+            return <p>{error}</p>
+        }
+
+        if (productos.length === 0) {
+            return <p>No se encontraron productos.</p>
+        }
+
+        return productos.map(producto => (
+            <CardProduct
+                key={producto.id}
+                id={producto.id}
+                nombre={producto.name}
+                precio={producto.finalPrice}
+                imageId={producto.imageId}
+            />
+        ))
+    }
 
     return (
         <div className="catalogo">
@@ -118,17 +178,11 @@ function Catalogo() {
                 <button type="button" onClick={limpiarFiltros}>Limpiar</button>
             </form>
 
-            {productos.map(producto => (
-                <CardProduct
-                    key={producto.id}
-                    id={producto.id}
-                    nombre={producto.name}
-                    precio={producto.finalPrice}
-                    imageId={producto.imageId}
-                />
-            ))}
+            {mostrarProductos()}
 
-            {totalPaginas > 1 && (
+            {/* Si el pedido fallo, totalPaginas quedo con el valor viejo:
+                mostrarlo seria ofrecer paginas que no sabemos si existen */}
+            {error === '' && totalPaginas > 1 && (
                 <div className="paginado">
                     <button
                         type="button"
