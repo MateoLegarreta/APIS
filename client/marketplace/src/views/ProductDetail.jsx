@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import Foto from '../components/Foto'
+import { api } from '../services/api'
 
 // Muestra todos los datos de un producto, que lo pide al backend por su id
 function ProductDetail() {
     const { id } = useParams()
     const [producto, setProducto] = useState(null)
     const [error, setError] = useState('')
+    const [mensaje, setMensaje] = useState('')
+    const [agregando, setAgregado] = useState(false)
 
     useEffect(() => {
         setError('')
@@ -30,6 +33,18 @@ function ProductDetail() {
                 console.error(error)
             })
     }, [id])
+
+    function handleAgregar(){
+        setMensaje('')
+        setAgregado(true)
+        api('/cart/items', {
+            method: 'POST',
+            body: JSON.stringify({ productId: producto.id, quantity: 1 })
+        })
+        .then(() => setMensaje('Producto agregado al carrito'))
+        .catch(error => setMensaje(error.message))
+        .finally(() => setAgregado(false))
+    }
 
     if (error) {
         return (
@@ -66,9 +81,17 @@ function ProductDetail() {
                     : 'Sin stock'}
             </p>
 
+            <button onClick={handleAgregar} disabled={agregando || producto.stock === 0}>
+                {agregando ? 'Agregando...' : 'Agregar al carrito'}
+            </button>
+
+            {mensaje && <p>{mensaje}</p>}
+
             <Link to="/">Volver al catálogo</Link>
         </div>
     )
+
 }
+
 
 export default ProductDetail

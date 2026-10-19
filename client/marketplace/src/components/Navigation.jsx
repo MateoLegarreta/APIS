@@ -28,6 +28,11 @@ function Navigation() {
                 <Link to='/register'>Registrarse</Link>
               </li>
             )}
+            {logueado && (
+              <li>
+                <Link to='/carrito'>Mi carrito</Link>
+              </li>
+            )}
         </ul>
     </nav>
   )

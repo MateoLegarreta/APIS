@@ -5,6 +5,7 @@ import Catalogo from './views/Catalogo'
 import Login from './views/Login'
 import Register from './views/Register'
 import ProductDetail from './views/ProductDetail'
+import Cart from './views/Cart'
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/producto/:id" element={<ProductDetail />} />
+        <Route path="/carrito" element={<Cart />} />
       </Routes>
     </>                                              
   )
