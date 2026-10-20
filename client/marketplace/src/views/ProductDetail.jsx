@@ -10,6 +10,7 @@ function ProductDetail() {
     const [error, setError] = useState('')
     const [mensaje, setMensaje] = useState('')
     const [agregando, setAgregado] = useState(false)
+    const [cantidad, setCantidad] = useState(1)
 
     useEffect(() => {
         setError('')
@@ -39,7 +40,7 @@ function ProductDetail() {
         setAgregado(true)
         api('/cart/items', {
             method: 'POST',
-            body: JSON.stringify({ productId: producto.id, quantity: 1 })
+            body: JSON.stringify({ productId: producto.id, quantity: cantidad })
         })
         .then(() => setMensaje('Producto agregado al carrito'))
         .catch(error => setMensaje(error.message))
@@ -60,35 +61,76 @@ function ProductDetail() {
     }
 
     const tieneDescuento = producto.discountPercentage > 0
+    const hayStock = producto.stock > 0
 
     return (
-        <div>
-            <h1>{producto.name}</h1>
-            <Foto imageId={producto.imageId} alt={producto.name} tamanio={300} />
-            <p>{producto.description}</p>
-            <p>Categoría: {producto.category?.description}</p>
-
-            {tieneDescuento && (
-                <p>
-                    <s>Precio: ${producto.price}</s> ({producto.discountPercentage}% de descuento)
-                </p>
-            )}
-            <p>Precio: ${producto.finalPrice}</p>
-
-            <p>
-                {producto.stock > 0
-                    ? 'Stock disponible: ' + producto.stock
-                    : 'Sin stock'}
+        <>
+            <p className="breadcrumb">
+                <Link to="/">Todos los productos</Link> / {producto.name}
             </p>
 
-            <button onClick={handleAgregar} disabled={agregando || producto.stock === 0}>
-                {agregando ? 'Agregando...' : 'Agregar al carrito'}
-            </button>
+            <div className="detalle">
+                <div className="detalle-foto">
+                    <Foto imageId={producto.imageId} alt={producto.name} tamanio={360} />
+                </div>
 
-            {mensaje && <p>{mensaje}</p>}
+                <div>
+                    <h1 className="detalle-titulo">{producto.name}</h1>
 
-            <Link to="/">Volver al catálogo</Link>
-        </div>
+                    {tieneDescuento && (
+                        <p>
+                            <s className="detalle-precio-viejo">${producto.price}</s>{' '}
+                            <span className="etiqueta-descuento">-{producto.discountPercentage}%</span>
+                        </p>
+                    )}
+
+                    <p className="detalle-precio">${producto.finalPrice}</p>
+
+                    <div className="detalle-acciones">
+                        <div className="cantidad">
+                            {/* No baja de 1: el backend rechaza una cantidad de 0 con un 400 */}
+                            <button
+                                type="button"
+                                onClick={() => setCantidad(cantidad - 1)}
+                                disabled={cantidad <= 1}>
+                                −
+                            </button>
+                            <span>{cantidad}</span>
+                            {/* Ni pasa del stock, asi no se manda un pedido que va a dar 409 */}
+                            <button
+                                type="button"
+                                onClick={() => setCantidad(cantidad + 1)}
+                                disabled={cantidad >= producto.stock}>
+                                +
+                            </button>
+                        </div>
+
+                        <button
+                            className="boton"
+                            onClick={handleAgregar}
+                            disabled={agregando || !hayStock}>
+                            {agregando ? 'Agregando...' : 'Agregar al carrito'}
+                        </button>
+                    </div>
+
+                    {mensaje && <p className="mensaje-ok">{mensaje}</p>}
+
+                    <hr className="detalle-separador" />
+
+                    <p className="detalle-dato">
+                        <strong>Categoría:</strong> {producto.category?.description}
+                    </p>
+                    <p className="detalle-dato">
+                        <strong>Disponibilidad:</strong>{' '}
+                        {hayStock
+                            ? producto.stock + ' unidades en stock'
+                            : <span className="sin-stock">Sin stock</span>}
+                    </p>
+
+                    <p className="detalle-descripcion">{producto.description}</p>
+                </div>
+            </div>
+        </>
     )
 
 }

@@ -14,6 +14,7 @@ public class CartItemResponse {
     private Double unitPrice;
     private Integer quantity;
     private Double subtotal;
+    private Long imageId;
 
     public static CartItemResponse from(CartItem item) {
         CartItemResponse response = new CartItemResponse();
@@ -23,6 +24,7 @@ public class CartItemResponse {
         response.setUnitPrice(item.getProduct().getFinalPrice());
         response.setQuantity(item.getQuantity());
         response.setSubtotal(item.getSubtotal());
+        response.setImageId(item.getProduct().getImageId());
         return response;
     }
 }

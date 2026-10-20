@@ -127,17 +127,21 @@ function Catalogo() {
             return <p>No se encontraron productos.</p>
         }
 
-        return productos.map(producto => (
-            <CardProduct key={producto.id} producto={producto} />
-        ))
+        return (
+            <div className="grilla">
+                {productos.map(producto => (
+                    <CardProduct key={producto.id} producto={producto} />
+                ))}
+            </div>
+        )
     }
 
     return (
         <div className="catalogo">
-            <h1>Catálogo de Productos</h1>
-            <p>Explora la variedad de nuestros productos disponibles para compra.</p>
+            <h1 className="titulo-seccion">Catálogo de Productos</h1>
+            <p className="subtitulo-seccion">Explora la variedad de nuestros productos disponibles para compra.</p>
 
-            <form onSubmit={(e) => { e.preventDefault(); buscarProductos(); }}>
+            <form className="filtros" onSubmit={(e) => { e.preventDefault(); buscarProductos(); }}>
                 <input
                     type="text"
                     placeholder="Buscar por nombre"
@@ -168,8 +172,8 @@ function Catalogo() {
                     onChange={(e) => setPrecioMax(e.target.value)}
                 />
 
-                <button type="submit">Buscar</button>
-                <button type="button" onClick={limpiarFiltros}>Limpiar</button>
+                <button type="submit" className="boton">Buscar</button>
+                <button type="button" className="boton boton-secundario" onClick={limpiarFiltros}>Limpiar</button>
             </form>
 
             {mostrarProductos()}
@@ -180,6 +184,7 @@ function Catalogo() {
                 <div className="paginado">
                     <button
                         type="button"
+                        className="boton boton-secundario"
                         onClick={() => irAPagina(pagina - 1)}
                         disabled={pagina === 0}>
                         Anterior
@@ -189,6 +194,7 @@ function Catalogo() {
 
                     <button
                         type="button"
+                        className="boton boton-secundario"
                         onClick={() => irAPagina(pagina + 1)}
                         disabled={pagina >= totalPaginas - 1}>
                         Siguiente
