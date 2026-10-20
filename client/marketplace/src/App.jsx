@@ -10,7 +10,8 @@ import Cart from './views/Cart'
 function App() {
   return (
     <>                                               
-      <Navigation />                                 
+      <Navigation />
+      <main className="contenido">
       <Routes>
         <Route path="/" element={<Catalogo />} />
         <Route path="/login" element={<Login />} />
@@ -18,6 +19,7 @@ function App() {
         <Route path="/producto/:id" element={<ProductDetail />} />
         <Route path="/carrito" element={<Cart />} />
       </Routes>
+      </main>
     </>                                              
   )
 }

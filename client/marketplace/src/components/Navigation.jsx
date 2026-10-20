@@ -13,27 +13,31 @@ function Navigation() {
   }
 
   return (
-    <nav>
-        <ul>
+    <nav className="navbar">
+      <div className="navbar-interior">
+        <Link to='/' className="navbar-marca">La Bodega</Link>
+
+        <ul className="navbar-links">
             <li>
                 <Link to='/'>Catálogo</Link>
             </li>
-            <li>
-                {logueado
-                  ? <button onClick={handleLogout}>Cerrar sesión</button>
-                  : <Link to='/login'>Iniciar sesión</Link>}
-            </li>
-            {!logueado && (
-              <li>
-                <Link to='/register'>Registrarse</Link>
-              </li>
-            )}
             {logueado && (
               <li>
                 <Link to='/carrito'>Mi carrito</Link>
               </li>
             )}
+            {!logueado && (
+              <li>
+                <Link to='/register'>Registrarse</Link>
+              </li>
+            )}
+            <li>
+                {logueado
+                  ? <button onClick={handleLogout}>Cerrar sesión</button>
+                  : <Link to='/login'>Iniciar sesión</Link>}
+            </li>
         </ul>
+      </div>
     </nav>
   )
 }

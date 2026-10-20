@@ -13,6 +13,7 @@ public class OrderItemResponse {
     private Double unitPrice;
     private Integer quantity;
     private Double subtotal;
+    private Long imageId;
 
     public static OrderItemResponse from(OrderItem item) {
         OrderItemResponse response = new OrderItemResponse();
@@ -23,6 +24,7 @@ public class OrderItemResponse {
         response.setUnitPrice(item.getUnitPrice());
         response.setQuantity(item.getQuantity());
         response.setSubtotal(item.getSubtotal());
+        response.setImageId(item.getProduct().getImageId());
         return response;
     }
 }

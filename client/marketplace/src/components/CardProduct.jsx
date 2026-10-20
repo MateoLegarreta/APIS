@@ -8,26 +8,35 @@ const CardProduct = ({ producto }) => {
     const hayStock = producto.stock > 0
 
     return (
-        <div>
-            <Foto imageId={producto.imageId} alt={producto.name} tamanio={160} />
+        <div className="card">
+            <div className="card-foto">
+                <Foto imageId={producto.imageId} alt={producto.name} tamanio={160} />
+            </div>
 
-            <h2>{producto.name}</h2>
+            <div className="card-cuerpo">
+                {/* El ? evita reventar si por algun motivo el producto vino sin categoria */}
+                <span className="card-categoria">{producto.category?.description}</span>
 
-            {/* El ? evita reventar si por algun motivo el producto vino sin categoria */}
-            <p>{producto.category?.description}</p>
+                <h2 className="card-nombre">{producto.name}</h2>
 
-            {/* El precio tachado solo tiene sentido si hay descuento */}
-            {tieneDescuento && (
-                <p>
-                    <s>${producto.price}</s> {producto.discountPercentage}% de descuento
+                {/* El precio tachado solo tiene sentido si hay descuento */}
+                {tieneDescuento && (
+                    <p>
+                        <s className="card-precio-viejo">${producto.price}</s>{' '}
+                        <span className="etiqueta-descuento">-{producto.discountPercentage}%</span>
+                    </p>
+                )}
+
+                <p className="card-precio">${producto.finalPrice}</p>
+
+                <p className={hayStock ? 'stock' : 'sin-stock'}>
+                    {hayStock ? 'Stock: ' + producto.stock : 'Sin stock'}
                 </p>
-            )}
 
-            <p>Precio: ${producto.finalPrice}</p>
-
-            <p>{hayStock ? 'Stock: ' + producto.stock : 'Sin stock'}</p>
-
-            <Link to={'/producto/' + producto.id}>Ver detalle</Link>
+                <div className="card-accion">
+                    <Link to={'/producto/' + producto.id} className="boton">Ver detalle</Link>
+                </div>
+            </div>
         </div>
     )
 }
