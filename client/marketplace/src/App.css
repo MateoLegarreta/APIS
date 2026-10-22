@@ -555,6 +555,77 @@ select:focus {
 }
 
 /* ===========================================================
+   PANEL DE ADMINISTRACION
+   =========================================================== */
+
+/* collapse junta los bordes de las celdas en una sola linea, en vez de
+   dejar uno por celda con espacio en el medio */
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.tabla th {
+  text-align: left;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--borde);
+  white-space: nowrap;
+}
+
+.tabla td {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--borde);
+  vertical-align: middle;
+}
+
+.tabla tbody tr:hover {
+  background-color: var(--superficie);
+}
+
+/* Los numeros se leen mejor alineados a la derecha: las unidades quedan
+   una debajo de la otra y se comparan de un vistazo */
+.tabla .numero {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Botones chicos para la columna de acciones */
+.tabla .boton {
+  padding: 0.35rem 0.8rem;
+  font-size: 0.7rem;
+}
+
+.acciones {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* Barra de titulo del panel, con el boton de alta a la derecha */
+.admin-encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.admin-encabezado h1 {
+  margin: 0;
+}
+
+/* Marca una fila dada de baja sin sacarla de la lista */
+.fila-inactiva td {
+  opacity: 0.45;
+}
+
+/* ===========================================================
    MENSAJES
    =========================================================== */
 .mensaje-error {

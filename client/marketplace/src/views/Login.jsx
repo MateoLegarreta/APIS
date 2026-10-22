@@ -7,6 +7,7 @@ function Login() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const { logueado, login, logout } = useAuth();
+    
 
     function handleLogin() {
         setError('');
@@ -27,7 +28,7 @@ function Login() {
                 }
             })
             .then(data => {
-                login(data.access_token);
+                login(data.access_token, data.role);
             })
             .catch(error => {
                 setError(error.message);

@@ -10,6 +10,8 @@ import Orders from './views/Orders'
 import OrderDetail from './views/OrderDetail'
 import NotFound from './views/NotFound'
 import RutaProtegida from './components/RutaProtegida'
+import RutaAdmin from './components/RutaAdmin'
+import Products from './views/admin/Products'
 
 function App() {
   return (
@@ -25,6 +27,7 @@ function App() {
         <Route path="/pedidos" element={<RutaProtegida><Orders /></RutaProtegida>} />
         <Route path="/pedidos/:id" element={<RutaProtegida><OrderDetail /></RutaProtegida>} />
         <Route path="*" element={<NotFound />} />
+        <Route path="/admin/products" element={<RutaAdmin><Products /></RutaAdmin>} />
       </Routes>
       </main>
     </>                                              

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 function Navigation() {
-  const { logueado, logout } = useAuth()
+  const { logueado, logout, esAdmin } = useAuth()
   const navigate = useNavigate()
 
   // Cierra la sesion y lleva al login
@@ -41,6 +41,11 @@ function Navigation() {
                   ? <button onClick={handleLogout}>Cerrar sesión</button>
                   : <Link to='/login'>Iniciar sesión</Link>}
             </li>
+            {esAdmin && (
+              <li>
+                <Link to='/admin/products'>Panel de admin</Link>
+              </li>
+            )}
         </ul>
       </div>
     </nav>
