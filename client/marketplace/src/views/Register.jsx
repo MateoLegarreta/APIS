@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import {  Navigate, Link } from 'react-router-dom'
 
 
 function Register() {
@@ -9,6 +10,7 @@ function Register() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const { logueado, login, logout } = useAuth();
+    
 
     // Manda los datos al backend. Si sale bien, el backend devuelve un token
     // y el usuario queda con la sesion iniciada, igual que en el login
@@ -42,45 +44,46 @@ function Register() {
                     throw new Error('Error en el registro');
                 }
             })
-            .then(data => {
-                login(data.access_token);
-            })
+
             .catch(error => {
                 setError(error.message);
                 console.error(error);
             });
+            
+            
+            
+           
     }
 
     // Con sesion iniciada no se muestra el formulario
-    if (logueado) {
-        return (
-            <>
-                <p>Sesión iniciada</p>
-                <button onClick={logout}>Cerrar sesión</button>
-            </>
-        )
-    }
+    if (logueado) return <Navigate to="/" replace state={{ sesionIniciada: true }} />;
 
     return (
         <>
-            {error && <p>{error}</p>}
-            <form onSubmit={(e) => e.preventDefault()}>
+            <h1 className="titulo-seccion">Registrarse</h1>
+            <form className="form-caja" onSubmit={(e) => e.preventDefault()}>
+                {error && <p className="mensaje-error">{error}</p>}
+                
                 <input value={name}
+                       type="text"
                        placeholder="Nombre"
                        onChange={(e) => setName(e.target.value)} />
                 <input value={surname}
+                        type="text"
                        placeholder="Apellido"
                        onChange={(e) => setSurname(e.target.value)} />
                 <input value={email}
+                       type="email"
                        placeholder="Email"
                        onChange={(e) => setEmail(e.target.value)} />
                 <input value={password}
                        type="password"
                        placeholder="Contraseña"
                        onChange={(e) => setPassword(e.target.value)} />
-                <button onClick={handleRegister}>
+                <button className="boton" onClick={handleRegister}>
                     Registrarse
                 </button>
+                <Link to="/login" className="resumen-volver">¿Ya tenés cuenta? Iniciá sesión</Link>
             </form>
         </>
     )

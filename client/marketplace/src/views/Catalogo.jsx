@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import CardProduct from '../components/CardProduct'
+import { useLocation } from 'react-router-dom'
 
 // Cuantos productos se muestran por pagina
 const TAMANIO = 6
@@ -21,6 +22,9 @@ function Catalogo() {
 
     const [pagina, setPagina] = useState(0)
     const [totalPaginas, setTotalPaginas] = useState(0)
+
+    const location = useLocation()
+    const sesionIniciada = location.state?.sesionIniciada === true
 
     // Junta los filtros que esten completos. Los vacios no se mandan
     // y el backend los ignora
@@ -138,6 +142,7 @@ function Catalogo() {
 
     return (
         <div className="catalogo">
+            {sesionIniciada && <p className="mensaje-ok"> Bienvenido ! Sesión iniciada correctamente.</p>}
             <h1 className="titulo-seccion">Catálogo de Productos</h1>
             <p className="subtitulo-seccion">Explora la variedad de nuestros productos disponibles para compra.</p>
 

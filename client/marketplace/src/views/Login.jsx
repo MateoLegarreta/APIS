@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import {  Navigate, Link } from 'react-router-dom'
+
 
 
 function Login() {
@@ -7,6 +9,7 @@ function Login() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const { logueado, login, logout } = useAuth();
+    
     
 
     function handleLogin() {
@@ -27,36 +30,36 @@ function Login() {
                     throw new Error('Error en la autenticación');
                 }
             })
-            .then(data => {
-                login(data.access_token, data.role);
-            })
-            .catch(error => {
+
+             .catch(error => {
                 setError(error.message);
                 console.error(error);
             }); }
-
+            
+            
+            
+          
     // Con sesion iniciada no se muestra el formulario
-    if (logueado) {
-        return (
-            <>
-                <p>Sesión iniciada</p>
-                <button onClick={logout}>Cerrar sesión</button>
-            </>
-        )
-    }
+    if (logueado) return <Navigate to="/" replace state={{ sesionIniciada: true }} />;
 
     return (
         <>
-            {error && <p>{error}</p>}
-            <form onSubmit={(e) =>  e.preventDefault()}>
-                <input value={email}
+            
+            <h1 className="titulo-seccion">Iniciar Sesión</h1>
+            <form className="form-caja" onSubmit={(e) =>  e.preventDefault()}>
+                {error && <p className="mensaje-error">{error}</p>}
+                <input value={email} 
+                       type="email" 
+                       placeholder="Email"
                        onChange={(e) => setEmail(e.target.value)} />
                 <input value={password}
                        type="password"
+                       placeholder="Contraseña"
                        onChange={(e) => setPassword(e.target.value)} />
-                <button onClick={handleLogin}>
+                <button className="boton" onClick={handleLogin}>
                     Entrar
                 </button>
+                <Link to="/register" className="resumen-volver">¿No tenés cuenta? Registrate</Link>
              </form>
         </>
     )
