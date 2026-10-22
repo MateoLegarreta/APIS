@@ -1,0 +1,606 @@
+/* ===========================================================
+   BARRA DE NAVEGACION
+   Logo a la izquierda, links en el medio, acciones a la derecha.
+   sticky la deja pegada arriba al bajar por el catalogo
+   =========================================================== */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: var(--superficie);
+  border-bottom: 1px solid var(--borde);
+}
+
+.navbar-interior {
+  max-width: var(--ancho-max);
+  margin: 0 auto;
+  padding: 0.9rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.navbar-marca {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.navbar-marca:hover {
+  color: var(--texto);
+}
+
+/* margin-left auto empuja la lista hacia la derecha y la separa del logo */
+.navbar-links {
+  list-style: none;
+  margin: 0 0 0 auto;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 1.75rem;
+}
+
+.navbar-links a,
+.navbar-links button {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.navbar-links a:hover,
+.navbar-links button:hover {
+  color: var(--texto);
+}
+
+/* ===========================================================
+   CONTENEDOR DE LAS PANTALLAS
+   =========================================================== */
+.contenido {
+  max-width: var(--ancho-max);
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+/* Titulo de seccion centrado, como el "PROMOS" de la referencia */
+.titulo-seccion {
+  text-align: center;
+  font-size: 1.25rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+.subtitulo-seccion {
+  text-align: center;
+  color: var(--texto-suave);
+  margin-bottom: 2rem;
+}
+
+/* ===========================================================
+   FILTROS
+   flex-wrap hace que bajen de linea solos en pantallas angostas
+   =========================================================== */
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-bottom: 2.5rem;
+}
+
+input,
+select {
+  background-color: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  color: var(--texto);
+  padding: 0.6rem 0.9rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+input::placeholder {
+  color: var(--texto-suave);
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--acento);
+}
+
+/* ===========================================================
+   BOTONES
+   =========================================================== */
+.boton {
+  background-color: var(--acento);
+  color: #fff;
+  border: 1px solid var(--acento);
+  border-radius: var(--radio);
+  padding: 0.6rem 1.2rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  display: inline-block;
+  text-align: center;
+}
+
+.boton:hover:not(:disabled) {
+  background-color: var(--acento-hover);
+  color: #fff;
+}
+
+/* El secundario es el mismo boton sin relleno: se usa para la accion
+   que no queremos destacar (Limpiar, Anterior, Siguiente) */
+.boton-secundario {
+  background-color: transparent;
+  color: var(--texto-suave);
+  border-color: var(--borde);
+}
+
+.boton-secundario:hover:not(:disabled) {
+  background-color: var(--superficie-alta);
+  color: var(--texto);
+}
+
+.boton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ===========================================================
+   GRILLA DE PRODUCTOS
+   auto-fill + minmax: entran las columnas que quepan, de 220px minimo.
+   No hay que declarar cuantas por fila ni hacer media queries
+   =========================================================== */
+.grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+/* ===========================================================
+   TARJETA DE PRODUCTO
+   =========================================================== */
+.card {
+  background-color: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.card:hover {
+  border-color: var(--acento);
+  transform: translateY(-3px);
+}
+
+/* Las fotos de producto vienen con fondo blanco, asi que van sobre un
+   rectangulo claro. Sobre el negro se verian como recuadros flotando */
+.card-foto {
+  background-color: #f4f4f2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.card-cuerpo {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
+}
+
+.card-nombre {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.card-categoria {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.card-precio {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.card-precio-viejo {
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+}
+
+.etiqueta-descuento {
+  display: inline-block;
+  background-color: var(--acento);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.stock {
+  font-size: 0.75rem;
+  color: var(--texto-suave);
+}
+
+.sin-stock {
+  font-size: 0.75rem;
+  color: var(--error);
+  font-weight: 600;
+}
+
+/* margin-top auto empuja el boton al fondo de la tarjeta, asi todas las
+   tarjetas de la fila lo tienen a la misma altura aunque el nombre ocupe
+   una linea mas */
+.card-accion {
+  margin-top: auto;
+  padding-top: 0.75rem;
+}
+
+/* ===========================================================
+   PAGINADO
+   =========================================================== */
+.paginado {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2.5rem;
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+}
+
+/* ===========================================================
+   DETALLE DEL PRODUCTO
+   =========================================================== */
+
+/* Miga de pan: donde estoy parado y como vuelvo */
+.breadcrumb {
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+  margin-bottom: 1.5rem;
+}
+
+.breadcrumb a:hover {
+  color: var(--texto);
+}
+
+.detalle {
+  display: grid;
+  grid-template-columns: minmax(260px, 440px) 1fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+.detalle-foto {
+  background-color: #fff;
+  border-radius: var(--radio);
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.detalle-titulo {
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+}
+
+.detalle-precio {
+  font-size: 2.1rem;
+  font-weight: 700;
+  margin: 0.25rem 0 1.5rem;
+}
+
+.detalle-precio-viejo {
+  color: var(--texto-suave);
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+/* Fila del selector de cantidad y el boton de agregar */
+.detalle-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+}
+
+.cantidad {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  overflow: hidden;
+}
+
+.cantidad button {
+  background-color: var(--superficie);
+  border: none;
+  color: var(--texto);
+  width: 2.4rem;
+  height: 100%;
+  font-size: 1.1rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.cantidad button:hover:not(:disabled) {
+  background-color: var(--superficie-alta);
+}
+
+.cantidad button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.cantidad span {
+  min-width: 2.6rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* Linea divisoria entre las acciones y la ficha de datos */
+.detalle-separador {
+  border: none;
+  border-top: 1px solid var(--borde);
+  margin: 0 0 1.5rem;
+}
+
+.detalle-dato {
+  margin: 0.4rem 0;
+  color: var(--texto-suave);
+}
+
+/* La etiqueta en blanco y el valor en gris, como en la referencia */
+.detalle-dato strong {
+  color: var(--texto);
+  font-weight: 600;
+}
+
+.detalle-descripcion {
+  color: var(--texto-suave);
+  margin-top: 1.25rem;
+  line-height: 1.7;
+}
+
+/* En pantallas angostas la foto y los datos pasan a una sola columna */
+@media (max-width: 820px) {
+  .detalle {
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+  }
+}
+
+/* ===========================================================
+   FORMULARIOS (login y registro)
+   =========================================================== */
+.form-caja {
+  max-width: 380px;
+  margin: 0 auto;
+  background-color: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.form-caja input {
+  width: 100%;
+}
+
+/* ===========================================================
+   CARRITO
+   Dos columnas: las lineas a la izquierda, el resumen a la derecha
+   =========================================================== */
+.carrito {
+  display: grid;
+  grid-template-columns: 1fr minmax(280px, 380px);
+  gap: 3rem;
+  align-items: start;
+}
+
+.carrito-titulo {
+  font-size: 1.9rem;
+  font-weight: 700;
+  margin-bottom: 1.75rem;
+}
+
+/* Una linea del carrito: foto, nombre, cantidad y subtotal */
+.carrito-linea {
+  display: grid;
+  grid-template-columns: 72px 1fr auto;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--borde);
+}
+
+.carrito-foto {
+  background-color: #fff;
+  border-radius: 6px;
+  padding: 0.4rem;
+  display: flex;
+  justify-content: center;
+}
+
+.carrito-nombre {
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+/* "Eliminar" como link discreto debajo del nombre, no como boton rojo */
+.carrito-eliminar {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-top: 0.3rem;
+  color: var(--texto-suave);
+  font-size: 0.82rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.carrito-eliminar:hover:not(:disabled) {
+  color: var(--error);
+}
+
+.carrito-eliminar:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* La cantidad arriba y el subtotal abajo, los dos alineados a la derecha */
+.carrito-derecha {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.6rem;
+}
+
+.carrito-subtotal {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+/* --- Panel de resumen --- */
+.resumen {
+  background-color: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 1.75rem;
+}
+
+/* space-between separa la etiqueta del numero a los extremos */
+.resumen-fila {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--texto-suave);
+  font-size: 0.92rem;
+  margin-bottom: 0.6rem;
+}
+
+.resumen-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--texto);
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--borde);
+}
+
+/* width 100% para que el boton principal ocupe todo el panel */
+.resumen .boton {
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 0.85rem;
+}
+
+.resumen-separador {
+  text-align: center;
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+  margin: 1.25rem 0 1rem;
+}
+
+.resumen-volver {
+  display: block;
+  text-align: center;
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 860px) {
+  .carrito {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+/* ===========================================================
+   MENSAJES
+   =========================================================== */
+.mensaje-error {
+  color: var(--error);
+}
+
+.mensaje-ok {
+  color: var(--ok);
+}
+
+.mensaje-vacio {
+  text-align: center;
+  color: var(--texto-suave);
+  padding: 3rem 0;
+}
+
+/* ===========================================================
+   PEDIDOS
+   =========================================================== */
+.pedido-fila,
+.pedido-linea {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.1rem 0;
+  border-bottom: 1px solid var(--borde);
+}
+
+/* En el detalle: foto, datos (que ocupan el medio) y subtotal a la derecha */
+.pedido-linea > div {
+  flex: 1;
+}
+
+.pedido-fecha {
+  color: var(--texto-suave);
+  font-size: 0.88rem;
+  margin: 0.2rem 0 0;
+}
+
+.pedido-derecha {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.pedido-total {
+  font-weight: 700;
+}
