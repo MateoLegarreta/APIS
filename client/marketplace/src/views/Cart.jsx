@@ -1,6 +1,7 @@
 import { api } from '../services/api';
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
+import Foto from '../components/Foto'
 
 function Cart() {
     const navigate = useNavigate();
@@ -82,46 +83,92 @@ function Cart() {
     }
 
     if (cargando) return <p>Cargando carrito...</p>
-    if (error) return <p>{error}</p>
-    if (carrito.items.length === 0) return <p>El carrito esta vacio</p>
+    if (error) return <p className="mensaje-error">{error}</p>
+    if (carrito.items.length === 0) {
+        return (
+            <p className="mensaje-vacio">
+                Tu carrito está vacío. <Link to="/">Ver el catálogo</Link>
+            </p>
+        )
+    }
 
     return (
-        <div>
-            <h1>Mi carrito</h1>
+        <>
+            <h1 className="carrito-titulo">Mi carrito</h1>
 
-            {errorAccion && <p>{errorAccion}</p>}
+            {errorAccion && <p className="mensaje-error">{errorAccion}</p>}
 
-            {carrito.items.map(item => (
-                <div key={item.productId}>
-                    <h3>{item.name}</h3>
-                    <p>Precio unitario: ${item.unitPrice}</p>
+            <div className="carrito">
 
-                    <p>
-                        Cantidad:
-                        <button onClick={() => cambiarCantidad(item.productId, item.quantity - 1)} disabled={ocupado || item.quantity <= 1}>
-                            -
-                        </button>
-                        {item.quantity}
-                        <button onClick={() => cambiarCantidad(item.productId, item.quantity + 1)} disabled={ocupado}>
-                            +
-                        </button>
-                    </p>
+                <div>
+                    {carrito.items.map(item => (
+                        <div className="carrito-linea" key={item.productId}>
 
-                    <p>Subtotal: ${item.subtotal}</p>
+                            <div className="carrito-foto">
+                                <Foto imageId={item.imageId} alt={item.name} tamanio={56} />
+                            </div>
 
-                    <button onClick={() => quitarProducto(item.productId)} disabled={ocupado}>
-                        Quitar
+                            <div>
+                                <h3 className="carrito-nombre">{item.name}</h3>
+                                <button
+                                    className="carrito-eliminar"
+                                    onClick={() => quitarProducto(item.productId)}
+                                    disabled={ocupado}>
+                                    Quitar
+                                </button>
+                            </div>
+
+                            <div className="carrito-derecha">
+                                <div className="cantidad">
+                                    <button
+                                        onClick={() => cambiarCantidad(item.productId, item.quantity - 1)}
+                                        disabled={ocupado || item.quantity <= 1}>
+                                        −
+                                    </button>
+                                    <span>{item.quantity}</span>
+                                    <button
+                                        onClick={() => cambiarCantidad(item.productId, item.quantity + 1)}
+                                        disabled={ocupado}>
+                                        +
+                                    </button>
+                                </div>
+                                <span className="carrito-subtotal">${item.subtotal}</span>
+                            </div>
+
+                        </div>
+                    ))}
+                </div>
+
+                <div className="resumen">
+                    <div className="resumen-fila">
+                        <span>Productos</span>
+                        <span>{carrito.items.length}</span>
+                    </div>
+
+                    <div className="resumen-total">
+                        <span>Total</span>
+                        <span>${carrito.total}</span>
+                    </div>
+
+                    <button
+                        className="boton"
+                        onClick={confirmarCompra}
+                        disabled={ocupado}>
+                        Confirmar compra
+                    </button>
+
+                    <p className="resumen-separador">o</p>
+
+                    <button
+                        className="carrito-eliminar resumen-volver"
+                        onClick={vaciarCarrito}
+                        disabled={ocupado}>
+                        Vaciar carrito
                     </button>
                 </div>
-            ))}
 
-            <h2>Total: ${carrito.total}</h2>
-
-            <button onClick={confirmarCompra} disabled={ocupado} className="boton">
-                Confirmar compra
-            </button>{' '}
-            <button onClick={vaciarCarrito} disabled={ocupado}>Vaciar carrito</button>
-        </div>
+            </div>
+        </>
     )
 }
 
