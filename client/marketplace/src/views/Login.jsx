@@ -30,7 +30,9 @@ function Login() {
                     throw new Error('Error en la autenticación');
                 }
             })
-
+            .then(data => {
+                login(data.access_token, data.role);
+            })
              .catch(error => {
                 setError(error.message);
                 console.error(error);
