@@ -27,6 +27,11 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryRepository.findByActiveTrue(pageable);
     }
 
+    // Lista las categorias dadas de baja (solo lo usa el panel de admin)
+    public Page<Category> getInactiveCategories(PageRequest pageable) {
+        return categoryRepository.findByActiveFalse(pageable);
+    }
+
     // Una categoria dada de baja no se puede consultar, igual que un producto
     public Optional<Category> getCategoryById(Long categoryId) {
         return categoryRepository.findById(categoryId)
