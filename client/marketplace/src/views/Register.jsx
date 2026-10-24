@@ -44,7 +44,9 @@ function Register() {
                     throw new Error('Error en el registro');
                 }
             })
-
+            .then(data => {
+                login(data.access_token, data.role);
+            })
             .catch(error => {
                 setError(error.message);
                 console.error(error);

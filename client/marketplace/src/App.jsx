@@ -10,6 +10,7 @@ import Orders from './views/Orders'
 import OrderDetail from './views/OrderDetail'
 import NotFound from './views/NotFound'
 import RutaProtegida from './components/RutaProtegida'
+import Footer from './components/Footer'
 import RutaAdmin from './components/RutaAdmin'
 import Products from './views/admin/Products'
 
@@ -30,6 +31,7 @@ function App() {
         <Route path="/admin/products" element={<RutaAdmin><Products /></RutaAdmin>} />
       </Routes>
       </main>
+      <Footer />
     </>                                              
   )
 }

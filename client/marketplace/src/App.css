@@ -626,6 +626,79 @@ select:focus {
 }
 
 /* ===========================================================
+   PIE DE PAGINA
+   =========================================================== */
+.footer {
+  border-top: 1px solid var(--borde);
+  background-color: var(--superficie);
+  margin-top: 4rem;
+}
+
+/* auto-fit reparte las columnas que entren; en el celular quedan apiladas */
+.footer-columnas {
+  max-width: var(--ancho-max);
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 2.5rem;
+}
+
+.footer h3 {
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--texto);
+  margin-bottom: 1rem;
+}
+
+.footer ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.footer li {
+  margin-bottom: 0.6rem;
+}
+
+.footer a,
+.footer p {
+  color: var(--texto-suave);
+  font-size: 0.88rem;
+}
+
+.footer a:hover {
+  color: var(--acento-hover);
+}
+
+/* Cada dato de contacto con su icono adelante, alineados entre si */
+.footer-dato {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+/* Barra inferior, separada del resto por una linea */
+.footer-abajo {
+  border-top: 1px solid var(--borde);
+}
+
+.footer-abajo-interior {
+  max-width: var(--ancho-max);
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--texto-suave);
+  font-size: 0.82rem;
+}
+
+/* ===========================================================
    MENSAJES
    =========================================================== */
 .mensaje-error {
