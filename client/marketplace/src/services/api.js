@@ -1,14 +1,17 @@
 export function api(ruta, opciones ={}) {
     const token = localStorage.getItem('token');
+    const esArchivo = opciones.body instanceof FormData;
+
+    
 
     return fetch(ruta, {
-        ...opciones,
-        headers: {
-            'content-type': 'application/json',
-            ...(token && { 'authorization': `Bearer ${token}` }),
-            ...opciones.headers,
-        }
-    })
+      ...opciones,
+      headers: {
+          ...(!esArchivo && { 'content-type': 'application/json' }),
+          ...(token && { 'authorization': `Bearer ${token}` }),
+          ...opciones.headers,
+      }
+  })
     .then(respuesta => {
         if (!respuesta.ok) {
             if (respuesta.status === 403) {

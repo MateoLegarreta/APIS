@@ -98,7 +98,8 @@
 }
 
 input,
-select {
+select,
+textarea {
   background-color: var(--superficie);
   border: 1px solid var(--borde);
   border-radius: var(--radio);
@@ -108,12 +109,21 @@ select {
   font-family: inherit;
 }
 
-input::placeholder {
+/* El textarea trae su propia tipografia (monoespaciada) y se puede estirar
+   para los dos lados, lo que descuadra el formulario */
+textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+input::placeholder,
+textarea::placeholder {
   color: var(--texto-suave);
 }
 
 input:focus,
-select:focus {
+select:focus,
+textarea:focus {
   outline: none;
   border-color: var(--acento);
 }
