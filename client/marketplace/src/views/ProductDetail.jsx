@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import Foto from '../components/Foto'
 import { api } from '../services/api'
+import { useCart } from '../context/CartContext'
 
 // Muestra todos los datos de un producto, que lo pide al backend por su id
 function ProductDetail() {
@@ -11,6 +12,7 @@ function ProductDetail() {
     const [mensaje, setMensaje] = useState('')
     const [agregando, setAgregado] = useState(false)
     const [cantidad, setCantidad] = useState(1)
+    const { refrescarCarrito } = useCart()
 
     useEffect(() => {
         setError('')
@@ -42,7 +44,9 @@ function ProductDetail() {
             method: 'POST',
             body: JSON.stringify({ productId: producto.id, quantity: cantidad })
         })
-        .then(() => setMensaje('Producto agregado al carrito'))
+        .then(() => {
+            setMensaje('Producto agregado al carrito')
+            refrescarCarrito()})
         .catch(error => setMensaje(error.message))
         .finally(() => setAgregado(false))
     }

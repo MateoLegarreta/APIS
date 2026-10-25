@@ -1,10 +1,16 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useCart } from '../context/CartContext'
 
 function Navigation() {
   const { logueado, logout, esAdmin } = useAuth()
+  const { cantidad, refrescarCarrito} = useCart()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    refrescarCarrito()
+  }, [logueado])
 
   // Cierra la sesion y lleva al login
   function handleLogout() {
@@ -24,7 +30,7 @@ function Navigation() {
             {/* El admin no compra: administra. Por eso no ve carrito ni pedidos */}
             {logueado && !esAdmin && (
               <li>
-                <Link to='/carrito'>Mi carrito</Link>
+                <Link to='/carrito'>Mi carrito ({cantidad})</Link>
               </li>
             )}
             {logueado && !esAdmin && (

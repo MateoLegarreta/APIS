@@ -2,12 +2,14 @@ import { api } from '../services/api';
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import Foto from '../components/Foto'
+import { useCart } from '../context/CartContext'
 
 function Cart() {
     const navigate = useNavigate();
     const [carrito, setCarrito] = useState(null);
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState('');
+    const { refrescarCarrito } = useCart();
 
     // Error de una accion (cambiar cantidad, quitar, vaciar). Va aparte de "error"
     // para que, si falla una accion, el carrito siga a la vista
@@ -47,6 +49,7 @@ function Cart() {
             .then(data => {
                 if (alTerminar) alTerminar(data);
                 else setCarrito(data);
+                refrescarCarrito();
             })
             .catch(error => setErrorAccion(traducirError(error.message)))
             .finally(() => setOcupado(false));
@@ -75,7 +78,10 @@ function Cart() {
         setErrorAccion('');
         setOcupado(true);
         api('/cart/checkout', { method: 'POST' })
-            .then(pedido => navigate('/pedidos/' + pedido.id, { state: { recienCreado: true } }))
+            .then(pedido => {
+                refrescarCarrito()
+                navigate('/pedidos/' + pedido.id, { state: { recienCreado: true } })
+            })
             .catch(error => {
                 setErrorAccion(traducirErrorCheckout(error.message));
                 setOcupado(false);
