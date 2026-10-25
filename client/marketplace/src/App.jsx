@@ -14,6 +14,7 @@ import Footer from './components/Footer'
 import RutaAdmin from './components/RutaAdmin'
 import Products from './views/admin/Products'
 import Categories from './views/admin/Categories'
+import Sales from './views/admin/Sales'
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
         <Route path="*" element={<NotFound />} />
         <Route path="/admin/products" element={<RutaAdmin><Products /></RutaAdmin>} />
         <Route path="/admin/categories" element={<RutaAdmin><Categories /></RutaAdmin>} />
+        <Route path="/admin/sales" element={<RutaAdmin><Sales /></RutaAdmin>} />
       </Routes>
       </main>
       <Footer />
