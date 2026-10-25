@@ -40,6 +40,8 @@ public class User implements UserDetails {
     private String name;
     @Column
     private String surname;
+    @Column(unique = true)
+    private String nickname;
 
     @JsonIgnore
     @OneToMany(mappedBy = "user")

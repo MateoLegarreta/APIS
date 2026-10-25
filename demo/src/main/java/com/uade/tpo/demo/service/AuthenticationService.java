@@ -31,10 +31,13 @@ public class AuthenticationService {
 
                 if (repository.existsByEmail(request.getEmail()))
                         throw new UserDuplicateException();
+                if (repository.existsByNickname(request.getNickname()))
+                        throw new UserDuplicateException();
 
                 var user = User.builder()
                                 .name(request.getName())
                                 .surname(request.getSurname())
+                                .nickname(request.getNickname())
                                 .email(request.getEmail())
                                 .password(passwordEncoder.encode(request.getPassword()))
                                 .role(Role.BUYER)

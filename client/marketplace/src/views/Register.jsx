@@ -6,6 +6,7 @@ import {  Navigate, Link } from 'react-router-dom'
 function Register() {
     const [name, setName] = useState('');
     const [surname, setSurname] = useState('');
+    const [nickname, setNickname] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -17,7 +18,7 @@ function Register() {
     function handleRegister() {
         setError('');
 
-        if (!name.trim() || !surname.trim() || !email.trim() || !password) {
+        if (!name.trim() || !surname.trim() || !nickname.trim() || !email.trim() || !password) {
             setError('Completá todos los campos');
             return;
         }
@@ -28,6 +29,7 @@ function Register() {
             body: JSON.stringify({
                 name: name.trim(),
                 surname: surname.trim(),
+                nickname: nickname.trim(),
                 email: email.trim(),
                 password
             })
@@ -74,6 +76,9 @@ function Register() {
                         type="text"
                        placeholder="Apellido"
                        onChange={(e) => setSurname(e.target.value)} />
+                <input value={nickname}
+                       placeholder= "Nombre de usuario"
+                       onChange={(e) => setNickname(e.target.value)} />
                 <input value={email}
                        type="email"
                        placeholder="Email"

@@ -61,6 +61,7 @@ function Users() {
                     <tr>
                         <th>Email</th>
                         <th>Nombre</th>
+                        <th>Usuario</th>
                         <th>Rol</th>
                         <th>Estado</th>
                         <th>Acciones</th>
@@ -71,6 +72,7 @@ function Users() {
                         <tr key={usuario.id} className={usuario.active ? '' : 'fila-inactiva'}>
                             <td>{usuario.email}</td>
                             <td>{usuario.name} {usuario.surname}</td>
+                            <td>{usuario.nickname}</td>
                             <td>{usuario.role}</td>
                             <td>{usuario.active ? 'Activo' : 'Dado de baja'}</td>
                             <td>
