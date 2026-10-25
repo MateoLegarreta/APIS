@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { api } from '../../services/api'
+import MenuAdmin from '../../components/MenuAdmin'
 
 function Products() {
     const [productos, setProductos] = useState([])
@@ -183,6 +184,7 @@ function Products() {
 
 return (
     <>
+        <MenuAdmin/>
         <div className="admin-encabezado">
             <h1>{verInactivos ? 'Productos dados de baja' : 'Productos'}</h1>
             <div className="acciones">

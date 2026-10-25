@@ -15,6 +15,7 @@ import RutaAdmin from './components/RutaAdmin'
 import Products from './views/admin/Products'
 import Categories from './views/admin/Categories'
 import Sales from './views/admin/Sales'
+import Users from './views/admin/Users'
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
         <Route path="/admin/products" element={<RutaAdmin><Products /></RutaAdmin>} />
         <Route path="/admin/categories" element={<RutaAdmin><Categories /></RutaAdmin>} />
         <Route path="/admin/sales" element={<RutaAdmin><Sales /></RutaAdmin>} />
+        <Route path="/admin/users" element={<RutaAdmin><Users /></RutaAdmin>} />
       </Routes>
       </main>
       <Footer />

@@ -617,6 +617,38 @@ textarea:focus {
   justify-content: flex-end;
 }
 
+/* Menu de secciones del panel. Va arriba de cada pantalla de admin */
+.menu-admin {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--borde);
+  margin-bottom: 2rem;
+}
+
+.menu-admin a {
+  padding: 0.7rem 1.1rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+  /* El borde transparente reserva el lugar, asi la seccion activa no empuja
+     al resto hacia abajo cuando se le pinta el suyo */
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.menu-admin a:hover {
+  color: var(--texto);
+}
+
+/* NavLink agrega la clase "active" sola cuando la ruta coincide */
+.menu-admin a.active {
+  color: var(--texto);
+  border-bottom-color: var(--acento);
+}
+
 /* Barra de titulo del panel, con el boton de alta a la derecha */
 .admin-encabezado {
   display: flex;

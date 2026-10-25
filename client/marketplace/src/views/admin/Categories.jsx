@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { api } from '../../services/api'
+import MenuAdmin from '../../components/MenuAdmin'
 
 // ABM de categorias. Es el mismo patron que Products.jsx pero con un solo campo (description)
 function Categories() {
@@ -134,6 +135,7 @@ function Categories() {
 
     return (
         <>
+            <MenuAdmin/>
             <div className="admin-encabezado">
                 <h1>{verInactivas ? 'Categorias dadas de baja' : 'Categorias'}</h1>
                 <div className="acciones">

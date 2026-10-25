@@ -21,14 +21,20 @@ function Navigation() {
             <li>
                 <Link to='/'>Catálogo</Link>
             </li>
-            {logueado && (
+            {/* El admin no compra: administra. Por eso no ve carrito ni pedidos */}
+            {logueado && !esAdmin && (
               <li>
                 <Link to='/carrito'>Mi carrito</Link>
               </li>
             )}
-            {logueado && (
+            {logueado && !esAdmin && (
               <li>
                 <Link to='/pedidos'>Mis pedidos</Link>
+              </li>
+            )}
+            {esAdmin && (
+              <li>
+                <Link to='/admin/products'>Panel</Link>
               </li>
             )}
             {!logueado && (
@@ -36,21 +42,12 @@ function Navigation() {
                 <Link to='/register'>Registrarse</Link>
               </li>
             )}
+            {/* Las acciones de cuenta van siempre al final */}
             <li>
                 {logueado
                   ? <button onClick={handleLogout}>Cerrar sesión</button>
                   : <Link to='/login'>Iniciar sesión</Link>}
             </li>
-            {esAdmin && (
-              <li>
-                <Link to='/admin/products'>Panel de admin</Link>
-              </li>
-            )}
-            {esAdmin && (
-              <li>
-                <Link to='/admin/categories'>Admin categorías</Link>
-              </li>
-            )}
         </ul>
       </div>
     </nav>

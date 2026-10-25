@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../../services/api'
+import MenuAdmin from '../../components/MenuAdmin';
 
 
 function Sales() {
@@ -23,6 +24,7 @@ function Sales() {
 
     return (
         <div>
+            <MenuAdmin/>
             <h1 className="titulo-seccion">Ventas del local</h1>
 
             {pedidos.map(pedido => {
