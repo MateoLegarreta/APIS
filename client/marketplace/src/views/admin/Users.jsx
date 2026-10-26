@@ -19,6 +19,7 @@ function Users() {
             .finally(() => setCargando(false))
     }, [])
 
+    // Un solo boton para las dos acciones: manda el PUT con el active invertido
     function cambiarEstado(usuario){
         const dandoDeBaja= usuario.active
         const accion = dandoDeBaja ? 'dar de baja' : 'reactivar'
@@ -77,6 +78,7 @@ function Users() {
                             <td>{usuario.active ? 'Activo' : 'Dado de baja'}</td>
                             <td>
                                 <div className="acciones">
+                                    {/* Al admin no se le da de baja: se quedaria sin panel */}
                                     {usuario.role !== 'ADMIN' && (
                                         <button className='boton boton-secundario'
                                         onClick={() => cambiarEstado(usuario)}>

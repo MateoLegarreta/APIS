@@ -12,6 +12,8 @@ function Login() {
     
     
 
+    // Pide el token al backend. Si las credenciales estan bien, login() lo guarda
+    // y la pantalla se redirige sola al catalogo
     function handleLogin() {
         setError('');
         fetch('/api/v1/auth/authenticate', {
@@ -31,6 +33,7 @@ function Login() {
                 }
             })
             .then(data => {
+                // Guarda el token y el rol en el contexto y en localStorage
                 login(data.access_token, data.role);
             })
              .catch(error => {

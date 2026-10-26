@@ -37,6 +37,7 @@ function ProductDetail() {
             })
     }, [id])
 
+    // Agrega el producto al carrito con la cantidad elegida y actualiza el contador
     function handleAgregar(){
         setMensaje('')
         setAgregado(true)

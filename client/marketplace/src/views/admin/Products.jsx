@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { api } from '../../services/api'
 import MenuAdmin from '../../components/MenuAdmin'
 
+// ABM de productos del panel de admin: alta, modificacion y baja logica,
+// con subida de foto. El mismo formulario sirve para crear y para editar
 function Products() {
     const [productos, setProductos] = useState([])
     const [cargando, setCargando] = useState(true)
@@ -19,9 +21,13 @@ function Products() {
     const [categoriaId, setCategoriaId] = useState('')
     const [categorias, setCategorias] = useState([])
 
+    // La foto que el admin eligio en el formulario, todavia sin subir
     const [archivo, setArchivo] = useState(null)
+
+    // null = estoy creando un producto nuevo; con id = estoy editando ese producto
     const [editandoId, setEditandoId] = useState(null)
 
+    // La foto que el producto ya tenia, para no perderla si se edita sin cambiarla
     const [imagenActual, setImagenActual] = useState(null)
 
     // false = lista de productos activos, true = lista de dados de baja (para reactivarlos)
@@ -45,6 +51,8 @@ function Products() {
             .catch(error => console.error(error))
     }, [])
 
+    // Primero de los dos pedidos del alta: sube la foto a /images y devuelve su id.
+    // Si no se eligio ninguna, devuelve una promesa con null para no cortar la cadena
     function subirImagen() {
         if (!archivo) return Promise.resolve(null)
         const formData = new FormData()
@@ -53,6 +61,7 @@ function Products() {
             .then(data => data.id)
     }
 
+    // Deja el formulario en blanco y vuelve al modo "crear"
     function limpiarFormulario() {
         setEditandoId(null)
         setNombre('')
@@ -64,6 +73,7 @@ function Products() {
         setImagenActual(null)
     }
 
+    // Abre el formulario con los datos del producto ya cargados
     function empezarEdicion(producto) {
         setEditandoId(producto.id)
         setNombre(producto.name)
@@ -78,6 +88,8 @@ function Products() {
         setImagenActual(producto.imageId)
     }
 
+    // Guarda el producto: sube la foto y, cuando termina, manda el producto.
+    // POST si es nuevo, PUT si se esta editando
     function handleGuardar() {
         setMensajeOk('')
         if (!nombre.trim() || !descripcion.trim() || !precio || !stock || !categoriaId) {
@@ -89,6 +101,7 @@ function Products() {
 
         subirImagen()
             .then(imagenId => {
+                // Si no se subio una foto nueva, se conserva la que ya tenia
                 const imagenFinal = imagenId !== null ? imagenId : imagenActual
                 return api(editandoId ? '/products/' + editandoId : '/products', {
                     method: editandoId ? 'PUT' : 'POST',
@@ -103,6 +116,7 @@ function Products() {
                 })
             })
             .then(guardado => {
+                // Se actualiza la lista en pantalla sin volver a pedirla al back
                 if (editandoId) {
                     setProductos(productos.map(p => p.id === editandoId ? guardado : p))
                     setMensajeOk('Producto actualizado con éxito')
@@ -118,6 +132,7 @@ function Products() {
             .finally(() => setGuardando(false))
     }
 
+    // Alterna entre la lista de activos y la de dados de baja
     function cambiarVista() {
         setVerInactivos(!verInactivos)
         setMostrarForm(false)
@@ -157,6 +172,8 @@ function Products() {
             .catch(error => setError(traducirErrorReactivar(error.message)))
     }
 
+    // Baja logica: no hay DELETE. Es un PUT con active: false, porque los pedidos
+    // ya hechos apuntan al producto y borrarlo romperia el historial de compras
     function handleBaja(producto) {
         if (!window.confirm('Seguro queres dar de baja "' + producto.name + '"?')) return
         setMensajeOk('')

@@ -4,6 +4,8 @@ import { api } from '../../services/api'
 import MenuAdmin from '../../components/MenuAdmin';
 
 
+// Ventas del local: todos los pedidos de todos los clientes (GET /orders/all).
+// Es la version admin de "Mis pedidos", y agrega quien compro
 function Sales() {
     const [pedidos, setPedidos] = useState(null);
     const [cargando, setCargando] = useState(true);

@@ -3,11 +3,14 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 
+// Barra de navegacion. Los links cambian segun si hay sesion y segun el rol
 function Navigation() {
   const { logueado, logout, esAdmin } = useAuth()
   const { cantidad, refrescarCarrito} = useCart()
   const navigate = useNavigate()
 
+  // Al iniciar o cerrar sesion se recalcula el contador del carrito,
+  // asi no queda el numero del usuario anterior
   useEffect(() => {
     refrescarCarrito()
   }, [logueado])

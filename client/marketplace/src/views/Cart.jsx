@@ -4,6 +4,8 @@ import { useNavigate, Link } from 'react-router-dom'
 import Foto from '../components/Foto'
 import { useCart } from '../context/CartContext'
 
+// Carrito del usuario logueado. El carrito vive en el backend, no en el navegador:
+// cada accion es un pedido y la respuesta trae el carrito ya actualizado
 function Cart() {
     const navigate = useNavigate();
     const [carrito, setCarrito] = useState(null);
@@ -42,6 +44,8 @@ function Cart() {
         return mensaje;
     }
 
+    // Las tres acciones del carrito hacen lo mismo: pedir, guardar la respuesta,
+    // refrescar el contador de la barra y manejar el error. Esto lo centraliza
     function ejecutar(ruta, opciones, alTerminar) {
         setErrorAccion('');
         setOcupado(true);
@@ -55,6 +59,7 @@ function Cart() {
             .finally(() => setOcupado(false));
     }
 
+    // Cambia las unidades de una linea
     function cambiarCantidad(productId, cantidad) {
         if (cantidad < 1) return;
         ejecutar('/cart/items/' + productId, {
@@ -63,10 +68,12 @@ function Cart() {
         });
     }
 
+    // Saca una linea del carrito
     function quitarProducto(productId) {
         ejecutar('/cart/items/' + productId, { method: 'DELETE' });
     }
 
+    // Borra todas las lineas de una
     function vaciarCarrito() {
         if (!window.confirm('¿Seguro que queres vaciar el carrito?')) return;
         ejecutar('/cart', { method: 'DELETE' }, () => setCarrito({ items: [], total: 0 }));
