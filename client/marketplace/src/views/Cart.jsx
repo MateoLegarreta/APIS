@@ -1,17 +1,17 @@
-import { api } from '../services/api';
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
 import Foto from '../components/Foto'
-import { useCart } from '../context/CartContext'
+import { fetchCart, updateCartItem, removeCartItem, clearCart } from '../redux/cartSlice'
+import { precio } from '../utils/precio'
 
-// Carrito del usuario logueado. El carrito vive en el backend, no en el navegador:
-// cada accion es un pedido y la respuesta trae el carrito ya actualizado
+// Carrito del usuario logueado. El carrito vive en el backend, y en el front se
+// guarda en el store: cada accion es un pedido y la respuesta trae el carrito
+// ya actualizado, que reemplaza al del store
 function Cart() {
     const navigate = useNavigate();
-    const [carrito, setCarrito] = useState(null);
-    const [cargando, setCargando] = useState(true);
-    const [error, setError] = useState('');
-    const { refrescarCarrito } = useCart();
+    const dispatch = useDispatch();
+    const { items, total, loading, error, cargado } = useSelector((state) => state.cart);
 
     // Error de una accion (cambiar cantidad, quitar, vaciar). Va aparte de "error"
     // para que, si falla una accion, el carrito siga a la vista
@@ -21,86 +21,53 @@ function Cart() {
     // asi no se mandan dos pedidos seguidos por un doble click
     const [ocupado, setOcupado] = useState(false);
 
+    // Normalmente la barra ya lo pidio al iniciar sesion: solo se pide si no esta
     useEffect(() => {
-        api('/cart')
-            .then(data => setCarrito(data))
-            .catch(error => setError(error.message))
-            .finally(() => setCargando(false));
-    }, [])
+        if (!cargado && !loading) {
+            dispatch(fetchCart())
+        }
+    }, [dispatch])
 
-    // El back responde 409 cuando la cantidad pedida supera el stock,
-    // pero api() solo devuelve "Error 409", asi que lo traducimos aca
-    function traducirError(mensaje) {
-        if (mensaje === 'Error 409') return 'No hay stock suficiente para esa cantidad';
-        if (mensaje === 'Error 400') return 'La cantidad indicada es invalida';
-        return mensaje;
-    }
-
-    // En el checkout los mismos codigos significan otra cosa:
-    // 409 = algun producto se quedo sin stock, 400 = el carrito esta vacio
-    function traducirErrorCheckout(mensaje) {
-        if (mensaje === 'Error 409') return 'Algun producto ya no tiene stock suficiente. Revisa las cantidades del carrito';
-        if (mensaje === 'Error 400') return 'El carrito esta vacio';
-        return mensaje;
-    }
-
-    // Las tres acciones del carrito hacen lo mismo: pedir, guardar la respuesta,
-    // refrescar el contador de la barra y manejar el error. Esto lo centraliza
-    function ejecutar(ruta, opciones, alTerminar) {
+    // Las acciones del carrito hacen lo mismo: despachar, esperar y manejar
+    // el error. El slice ya guarda el carrito nuevo, aca solo va lo de pantalla.
+    // Los mensajes de error (409 = sin stock, etc.) ya vienen traducidos del slice
+    function ejecutar(accion) {
         setErrorAccion('');
         setOcupado(true);
-        api(ruta, opciones)
-            .then(data => {
-                if (alTerminar) alTerminar(data);
-                else setCarrito(data);
-                refrescarCarrito();
-            })
-            .catch(error => setErrorAccion(traducirError(error.message)))
+        dispatch(accion)
+            .unwrap()
+            .catch(error => setErrorAccion(error.message))
             .finally(() => setOcupado(false));
     }
 
     // Cambia las unidades de una linea
     function cambiarCantidad(productId, cantidad) {
         if (cantidad < 1) return;
-        ejecutar('/cart/items/' + productId, {
-            method: 'PUT',
-            body: JSON.stringify({ quantity: cantidad })
-        });
+        ejecutar(updateCartItem({ productId, quantity: cantidad }));
     }
 
     // Saca una linea del carrito
     function quitarProducto(productId) {
-        ejecutar('/cart/items/' + productId, { method: 'DELETE' });
+        ejecutar(removeCartItem(productId));
     }
 
     // Borra todas las lineas de una
     function vaciarCarrito() {
         if (!window.confirm('¿Seguro que queres vaciar el carrito?')) return;
-        ejecutar('/cart', { method: 'DELETE' }, () => setCarrito({ items: [], total: 0 }));
+        ejecutar(clearCart());
     }
 
-    // Confirma la compra: POST /cart/checkout crea el pedido y vacia el carrito.
-    // Si sale bien se va al detalle del pedido recien creado
-    function confirmarCompra() {
-        setErrorAccion('');
-        setOcupado(true);
-        api('/cart/checkout', { method: 'POST' })
-            .then(pedido => {
-                refrescarCarrito()
-                navigate('/pedidos/' + pedido.id, { state: { recienCreado: true } })
-            })
-            .catch(error => {
-                setErrorAccion(traducirErrorCheckout(error.message));
-                setOcupado(false);
-            });
-    }
+ 
+    
 
-    if (cargando) return <p>Cargando carrito...</p>
+    // El error va primero: si el pedido fallo, "cargado" queda en false
+    // y la pantalla se quedaria en "Cargando..." para siempre
     if (error) return <p className="mensaje-error">{error}</p>
-    if (carrito.items.length === 0) {
+    if (loading || !cargado) return <p>Cargando carrito...</p>
+    if (items.length === 0) {
         return (
             <p className="mensaje-vacio">
-                Tu carrito está vacío. <Link to="/">Ver el catálogo</Link>
+                Tu carrito está vacío. <Link to="/catalogo">Ver el catálogo</Link>
             </p>
         )
     }
@@ -114,7 +81,7 @@ function Cart() {
             <div className="carrito">
 
                 <div>
-                    {carrito.items.map(item => (
+                    {items.map(item => (
                         <div className="carrito-linea" key={item.productId}>
 
                             <div className="carrito-foto">
@@ -145,7 +112,7 @@ function Cart() {
                                         +
                                     </button>
                                 </div>
-                                <span className="carrito-subtotal">${item.subtotal}</span>
+                                <span className="carrito-subtotal">{precio(item.subtotal)}</span>
                             </div>
 
                         </div>
@@ -155,19 +122,19 @@ function Cart() {
                 <div className="resumen">
                     <div className="resumen-fila">
                         <span>Productos</span>
-                        <span>{carrito.items.length}</span>
+                        <span>{items.length}</span>
                     </div>
 
                     <div className="resumen-total">
                         <span>Total</span>
-                        <span>${carrito.total}</span>
+                        <span>{precio(total)}</span>
                     </div>
 
                     <button
                         className="boton"
-                        onClick={confirmarCompra}
+                        onClick={() => navigate('/pago')}
                         disabled={ocupado}>
-                        Confirmar compra
+                        Ir a pagar
                     </button>
 
                     <p className="resumen-separador">o</p>

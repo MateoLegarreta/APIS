@@ -4,10 +4,10 @@ import { Link } from 'react-router-dom'
 function NotFound() {
     return (
         <div>
-            <h1 className="titulo-seccion">Pagina no encontrada</h1>
-            <p className="subtitulo-seccion">La direccion que escribiste no existe.</p>
+            <h1 className="titulo-seccion">Página no encontrada</h1>
+            <p className="subtitulo-seccion">La dirección que escribiste no existe.</p>
             <p className="mensaje-vacio">
-                <Link to="/" className="boton">Volver al catalogo</Link>
+                <Link to="/" className="boton">Volver al inicio</Link>
             </p>
         </div>
     )

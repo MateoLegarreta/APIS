@@ -1,26 +1,41 @@
 /* Variables de color y medidas. Se definen una sola vez aca y se usan en todo
-   el sitio con var(--nombre). Si manana cambia la paleta, se toca solo esto */
+   el sitio con var(--nombre). Si manana cambia la paleta, se toca solo esto.
+   Paleta: crema de fondo, verde botella como color de la marca y cobre
+   para lo que tiene que llamar la atencion (precios, descuentos, contador) */
 :root {
-  --fondo: #121214;
-  --superficie: #1c1c20;
-  --superficie-alta: #25252b;
-  --borde: #2c2c32;
+  --crema: #f3eee2;
+  --papel: #fbf8f1;
+  --linea: #ddd5c4;
 
-  --texto: #f2f2f4;
-  --texto-suave: #9a9aa4;
+  --verde: #1f3b2d;
+  --verde-hondo: #152a1f;
+  --verde-hover: #2b5040;
+  --verde-claro: #e2e8dd;
 
-  --acento: #a62b47;
-  --acento-hover: #c23a58;
+  --cobre: #c0783c;
+  --cobre-hondo: #a05a22;
 
-  --error: #e05252;
-  --ok: #3fb27f;
+  --tinta: #1e2420;
+  --tinta-suave: #5b645d;
 
-  --radio: 10px;
-  --ancho-max: 1200px;
+  --error: #b3261e;
+  --ok: #2e6b47;
 
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  color-scheme: dark;
+  /* Tres radios segun la jerarquia: chico para campos, medio para tarjetas
+     y grande para los paneles. Los botones van redondeados del todo */
+  --radio-chico: 8px;
+  --radio: 14px;
+  --radio-grande: 24px;
+
+  --ancho-max: 1240px;
+
+  --serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --sans: 'Figtree', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.55;
+  color-scheme: light;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -34,8 +49,8 @@
 
 body {
   margin: 0;
-  background-color: var(--fondo);
-  color: var(--texto);
+  background-color: var(--crema);
+  color: var(--tinta);
   min-height: 100vh;
 }
 
@@ -47,19 +62,23 @@ a {
 }
 
 a:hover {
-  color: var(--acento-hover);
+  color: var(--verde-hover);
 }
 
+/* Los titulos van en la serif, como una etiqueta de vino */
 h1,
 h2,
 h3 {
+  font-family: var(--serif);
+  font-weight: 600;
   margin: 0 0 0.5rem;
-  line-height: 1.2;
+  line-height: 1.15;
+  color: var(--verde);
 }
 
-h1 { font-size: 1.9rem; }
-h2 { font-size: 1.3rem; }
-h3 { font-size: 1.05rem; }
+h1 { font-size: 2.4rem; }
+h2 { font-size: 1.7rem; }
+h3 { font-size: 1.25rem; }
 
 p {
   margin: 0.25rem 0;
@@ -70,4 +89,10 @@ p {
 img {
   max-width: 100%;
   display: block;
+}
+
+/* Contorno visible al navegar con el teclado (Tab), en todos los elementos */
+:focus-visible {
+  outline: 2px solid var(--cobre);
+  outline-offset: 2px;
 }

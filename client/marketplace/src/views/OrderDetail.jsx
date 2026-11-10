@@ -1,36 +1,37 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { Link, useParams, useLocation } from 'react-router-dom'
-import { api } from '../services/api'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchOrderById } from '../redux/orderSlice'
 import Foto from '../components/Foto'
+import { precio } from '../utils/precio'
 
-// Detalle de un pedido (GET /orders/{id}). El precio de cada linea es el que
-// se pago ese dia, no el actual del producto
+// Detalle de un pedido. El precio de cada linea es el que se pago ese dia,
+// no el actual del producto
 function OrderDetail() {
     const { id } = useParams();
     const location = useLocation();
+    const dispatch = useDispatch();
 
     // Cart.jsx manda este flag al terminar el checkout, para mostrar el cartel de exito
     const recienCreado = location.state?.recienCreado === true;
 
-    const [pedido, setPedido] = useState(null);
-    const [cargando, setCargando] = useState(true);
-    const [error, setError] = useState('');
+    // El pedido casi siempre ya esta en el store: en "mis pedidos", en las
+    // ventas (si es el admin) o como detalle (recien comprado). Solo si no
+    // esta en ningun lado se pide al back. El id de la URL es texto: por eso String()
+    const pedido = useSelector((state) => {
+        const mismoId = (p) => String(p.id) === id;
+        const { items, ventas, detalle } = state.orders;
+        return items.find(mismoId) ?? ventas.find(mismoId) ?? (detalle && mismoId(detalle) ? detalle : null);
+    });
+    const detalleError = useSelector((state) => state.orders.detalleError);
+    const error = pedido ? null : detalleError;
 
     useEffect(() => {
-        setCargando(true);
-        setError('');
-        api('/orders/' + id)
-            .then(data => setPedido(data))
-            .catch(error => setError(traducirError(error.message)))
-            .finally(() => setCargando(false));
-    }, [id])
+        if (!pedido) {
+            dispatch(fetchOrderById(id))
+        }
+    }, [id, dispatch])
 
-    function traducirError(mensaje) {
-        if (mensaje === 'Error 404') return 'Ese pedido no existe';
-        return mensaje;
-    }
-
-    if (cargando) return <p>Cargando pedido...</p>
     if (error) {
         return (
             <>
@@ -39,6 +40,7 @@ function OrderDetail() {
             </>
         )
     }
+    if (!pedido) return <p>Cargando pedido...</p>
 
     return (
         <div>
@@ -58,17 +60,17 @@ function OrderDetail() {
                     <div>
                         <strong>{item.name}</strong>
                         <p className="pedido-fecha">
-                            {item.quantity} x ${item.unitPrice}
+                            {item.quantity} x {precio(item.unitPrice)}
                         </p>
                     </div>
 
-                    <span className="pedido-total">${item.subtotal}</span>
+                    <span className="pedido-total">{precio(item.subtotal)}</span>
                 </div>
             ))}
 
             <div className="resumen-total">
                 <span>Total</span>
-                <span>${pedido.total}</span>
+                <span>{precio(pedido.total)}</span>
             </div>
         </div>
     )

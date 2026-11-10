@@ -1,71 +1,59 @@
-import { useState } from 'react'
-import { useAuth } from '../context/AuthContext'
-import {  Navigate, Link } from 'react-router-dom'
-
-
+import { useState, useEffect } from 'react'
+import { Navigate, Link, useLocation } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { login, limpiarErrorAuth } from '../redux/authSlice'
 
 function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const { logueado, login, logout } = useAuth();
-    
-    
+    const dispatch = useDispatch();
+    const logueado = useSelector((state) => state.auth.token !== null);
+    const { loading, error } = useSelector((state) => state.auth);
 
-    // Pide el token al backend. Si las credenciales estan bien, login() lo guarda
-    // y la pantalla se redirige sola al catalogo
+    // Si llego aca porque quiso agregar al carrito sin sesion, viene un aviso
+    // y la pagina a la que hay que devolverlo despues de entrar
+    const location = useLocation();
+    const aviso = location.state?.aviso;
+    const volverA = location.state?.volverA;
+
+    // Si quedo un error de antes (por ejemplo del registro) no se muestra aca
+    useEffect(() => {
+        dispatch(limpiarErrorAuth())
+    }, [dispatch])
+
+    // Pide el token al backend. Si las credenciales estan bien, el slice lo
+    // guarda y la pantalla se redirige sola al catalogo
     function handleLogin() {
-        setError('');
-        fetch('/api/v1/auth/authenticate', {
-            method: 'POST',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ email:email.trim(), password }) 
-        } )
-            .then(response =>{
-                if(response.ok){
-                    return response.json();
-                }
-                else{
-                    if(response.status === 403){
-                        throw new Error('Usuario o contraseña incorrectos');
-                    }
-                    throw new Error('Error en la autenticación');
-                }
-            })
-            .then(data => {
-                // Guarda el token y el rol en el contexto y en localStorage
-                login(data.access_token, data.role);
-            })
-             .catch(error => {
-                setError(error.message);
-                console.error(error);
-            }); }
-            
-            
-            
-          
-    // Con sesion iniciada no se muestra el formulario
-    if (logueado) return <Navigate to="/" replace state={{ sesionIniciada: true }} />;
+        dispatch(login({ email: email.trim(), password }))
+    }
+
+    // Con sesion iniciada no se muestra el formulario: vuelve a donde estaba
+    // o, si entro directo al login, al inicio
+    if (logueado) {
+        return volverA
+            ? <Navigate to={volverA} replace />
+            : <Navigate to="/" replace state={{ sesionIniciada: true }} />;
+    }
 
     return (
         <>
-            
-            <h1 className="titulo-seccion">Iniciar Sesión</h1>
-            <form className="form-caja" onSubmit={(e) =>  e.preventDefault()}>
+            <h1 className="titulo-seccion">Iniciar sesión</h1>
+            <form className="form-caja" onSubmit={(e) => e.preventDefault()}>
+                {aviso && !error && <p className="aviso">{aviso}</p>}
                 {error && <p className="mensaje-error">{error}</p>}
-                <input value={email} 
-                       type="email" 
+                <input value={email}
+                       type="email"
                        placeholder="Email"
                        onChange={(e) => setEmail(e.target.value)} />
                 <input value={password}
                        type="password"
                        placeholder="Contraseña"
                        onChange={(e) => setPassword(e.target.value)} />
-                <button className="boton" onClick={handleLogin}>
-                    Entrar
+                <button className="boton" onClick={handleLogin} disabled={loading}>
+                    {loading ? 'Entrando...' : 'Entrar'}
                 </button>
-                <Link to="/register" className="resumen-volver">¿No tenés cuenta? Registrate</Link>
-             </form>
+                <Link to="/register" state={location.state} className="resumen-volver">¿No tenés cuenta? Registrate</Link>
+            </form>
         </>
     )
 }

@@ -1,13 +1,20 @@
 import { useState, useEffect } from 'react'
-import { api } from '../../services/api'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchAdminProducts, saveProduct, changeProductStatus } from '../../redux/productSlice'
+import { fetchCategories } from '../../redux/categorySlice'
 import MenuAdmin from '../../components/MenuAdmin'
+// Se importa con otro nombre porque "precio" ya es el estado del campo del formulario
+import { precio as formatoPrecio } from '../../utils/precio'
 
 // ABM de productos del panel de admin: alta, modificacion y baja logica,
 // con subida de foto. El mismo formulario sirve para crear y para editar
 function Products() {
-    const [productos, setProductos] = useState([])
-    const [cargando, setCargando] = useState(true)
-    const [error, setError] = useState('')
+    const dispatch = useDispatch()
+    const { adminItems: productos, adminLoading: cargando, adminError } = useSelector((state) => state.products)
+    const { items: categorias, cargado: categoriasCargadas } = useSelector((state) => state.categories)
+    // Error de una accion (baja, reactivar). El de la lista viene del slice
+    const [errorAccion, setErrorAccion] = useState('')
+    const error = errorAccion || adminError
     const [mensajeOk, setMensajeOk] = useState('')
 
     const [mostrarForm, setMostrarForm] = useState(false)
@@ -19,7 +26,6 @@ function Products() {
     const [precio, setPrecio] = useState('')
     const [stock, setStock] = useState('')
     const [categoriaId, setCategoriaId] = useState('')
-    const [categorias, setCategorias] = useState([])
 
     // La foto que el admin eligio en el formulario, todavia sin subir
     const [archivo, setArchivo] = useState(null)
@@ -36,30 +42,17 @@ function Products() {
     // La lista que se administra. Se vuelve a pedir cada vez que se cambia entre
     // activos y dados de baja
     useEffect(() => {
-        setCargando(true)
-        setError('')
-        api(verInactivos ? '/products/inactive?size=100' : '/products?size=100')
-            .then(data => setProductos(data.content))
-            .catch(error => setError(error.message))
-            .finally(() => setCargando(false))
-    }, [verInactivos])
+        setErrorAccion('')
+        dispatch(fetchAdminProducts(verInactivos))
+    }, [verInactivos, dispatch])
 
-    // Las categorias, para llenar el desplegable del formulario
+    // Las categorias, para llenar el desplegable del formulario. Son las mismas
+    // del catalogo: si ya se pidieron alla, no se vuelven a pedir
     useEffect(() => {
-        api('/categories?size=100')
-            .then(data => setCategorias(data.content))
-            .catch(error => console.error(error))
-    }, [])
-
-    // Primero de los dos pedidos del alta: sube la foto a /images y devuelve su id.
-    // Si no se eligio ninguna, devuelve una promesa con null para no cortar la cadena
-    function subirImagen() {
-        if (!archivo) return Promise.resolve(null)
-        const formData = new FormData()
-        formData.append('file', archivo)
-        return api('/images', { method: 'POST', body: formData })
-            .then(data => data.id)
-    }
+        if (!categoriasCargadas) {
+            dispatch(fetchCategories())
+        }
+    }, [dispatch])
 
     // Deja el formulario en blanco y vuelve al modo "crear"
     function limpiarFormulario() {
@@ -88,8 +81,9 @@ function Products() {
         setImagenActual(producto.imageId)
     }
 
-    // Guarda el producto: sube la foto y, cuando termina, manda el producto.
-    // POST si es nuevo, PUT si se esta editando
+    // Guarda el producto. El slice sube la foto (si se eligio una) y despues
+    // manda el producto: POST si es nuevo, PUT si se esta editando.
+    // Tambien actualiza la lista en pantalla con lo que devuelve el back
     function handleGuardar() {
         setMensajeOk('')
         if (!nombre.trim() || !descripcion.trim() || !precio || !stock || !categoriaId) {
@@ -99,34 +93,24 @@ function Products() {
         setErrorForm('')
         setGuardando(true)
 
-        subirImagen()
-            .then(imagenId => {
-                // Si no se subio una foto nueva, se conserva la que ya tenia
-                const imagenFinal = imagenId !== null ? imagenId : imagenActual
-                return api(editandoId ? '/products/' + editandoId : '/products', {
-                    method: editandoId ? 'PUT' : 'POST',
-                    body: JSON.stringify({
-                        name: nombre.trim(),
-                        description: descripcion.trim(),
-                        price: Number(precio),
-                        stock: Number(stock),
-                        categoryId: Number(categoriaId),
-                        imageId: imagenFinal
-                    })
-                })
-            })
-            .then(guardado => {
-                // Se actualiza la lista en pantalla sin volver a pedirla al back
-                if (editandoId) {
-                    setProductos(productos.map(p => p.id === editandoId ? guardado : p))
-                    setMensajeOk('Producto actualizado con éxito')
-                } else {
-                    setProductos([...productos, guardado])
-                    setMensajeOk('Producto agregado con éxito')
-                }
+        dispatch(saveProduct({
+            id: editandoId,
+            archivo,
+            datos: {
+                name: nombre.trim(),
+                description: descripcion.trim(),
+                price: Number(precio),
+                stock: Number(stock),
+                categoryId: Number(categoriaId),
+                // Si no se sube una foto nueva, se conserva la que ya tenia
+                imageId: imagenActual
+            }
+        }))
+            .unwrap()
+            .then(() => {
+                setMensajeOk(editandoId ? 'Producto actualizado con éxito' : 'Producto agregado con éxito')
                 setMostrarForm(false)
                 limpiarFormulario()
-
             })
             .catch(error => setErrorForm(error.message))
             .finally(() => setGuardando(false))
@@ -141,61 +125,26 @@ function Products() {
         setMensajeOk('')
     }
 
-    // La unica falla esperable al reactivar: la categoria del producto esta dada de baja
-    // (el back responde 404 porque no deja cargar productos en una categoria retirada)
-    function traducirErrorReactivar(mensaje) {
-        if (mensaje === 'Error 404') return 'No se pudo reactivar: la categoria del producto esta dada de baja. Reactivala primero en Admin categorias'
-        return mensaje
-    }
-
-    // Vuelve a dar de alta un producto: es el mismo PUT que la baja, pero con active: true
-    function handleReactivar(producto) {
+    // Baja y reactivacion son el mismo PUT cambiando "active".
+    // No hay DELETE: los pedidos ya hechos apuntan al producto y borrarlo
+    // romperia el historial de compras. El slice saca el producto de la lista
+    function cambiarEstado(producto, active, mensaje) {
         setMensajeOk('')
-        setError('')
+        setErrorAccion('')
 
-        api('/products/' + producto.id, {
-            method: 'PUT',
-            body: JSON.stringify({
-                name: producto.name,
-                description: producto.description,
-                price: producto.price,
-                stock: producto.stock,
-                categoryId: producto.category.id,
-                imageId: producto.imageId,
-                active: true
-            })
-        })
-            .then(() => {
-                setProductos(productos.filter(p => p.id !== producto.id))
-                setMensajeOk('Producto reactivado')
-            })
-            .catch(error => setError(traducirErrorReactivar(error.message)))
+        dispatch(changeProductStatus({ producto, active }))
+            .unwrap()
+            .then(() => setMensajeOk(mensaje))
+            .catch(error => setErrorAccion(error.message))
     }
 
-    // Baja logica: no hay DELETE. Es un PUT con active: false, porque los pedidos
-    // ya hechos apuntan al producto y borrarlo romperia el historial de compras
+    function handleReactivar(producto) {
+        cambiarEstado(producto, true, 'Producto reactivado')
+    }
+
     function handleBaja(producto) {
         if (!window.confirm('Seguro queres dar de baja "' + producto.name + '"?')) return
-        setMensajeOk('')
-        setError('')
-
-        api('/products/' + producto.id, {
-            method: 'PUT',
-            body: JSON.stringify({
-                name: producto.name,
-                description: producto.description,
-                price: producto.price,
-                stock: producto.stock,
-                categoryId: producto.category.id,
-                imageId: producto.imageId,
-                active: false
-            })
-        })
-            .then(() => {
-                setProductos(productos.filter(p => p.id !== producto.id))
-                setMensajeOk('Producto dado de baja')
-            })
-            .catch(error => setError(error.message))
+        cambiarEstado(producto, false, 'Producto dado de baja')
     }
 
 
@@ -259,7 +208,7 @@ return (
                     <tr key={producto.id}>
                         <td>{producto.name}</td>
                         <td>{producto.category?.description}</td>
-                        <td className="numero">${producto.price}</td>
+                        <td className="numero">{formatoPrecio(producto.price)}</td>
                         <td className="numero">{producto.stock}</td>
                         <td>
                             <div className="acciones">

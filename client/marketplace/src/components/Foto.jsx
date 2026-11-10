@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchImage } from '../redux/imageSlice'
 
 // El backend guarda solo los bytes de la foto, no guarda si es un jpg o un png.
 // Por suerte cada formato arranca con una firma propia que queda visible en los
@@ -10,47 +12,37 @@ function tipoDeImagen(base64) {
     return 'image/jpeg'
 }
 
-// Pide la foto a GET /images/{id} y la muestra. Si el producto no tiene foto
-// o el pedido falla, muestra un cartel en vez de una imagen rota
+// Muestra la foto de un producto. Si ya se pidio antes, sale directo del store;
+// si no, la pide. Si el producto no tiene foto o el pedido falla, muestra un
+// cartel en vez de una imagen rota
 function Foto({ imageId, alt, tamanio }) {
-    const [base64, setBase64] = useState('')
-    const [fallo, setFallo] = useState(false)
+    const dispatch = useDispatch()
+    const base64 = useSelector((state) => state.images.porId[imageId])
+    const fallo = useSelector((state) => state.images.fallidas[imageId] === true)
 
     useEffect(() => {
-        setBase64('')
-        setFallo(false)
+        // Un producto sin foto no tiene imageId, no hay nada que pedir.
+        // Si ya esta guardada o se esta pidiendo, fetchImage no hace nada
+        if (imageId) {
+            dispatch(fetchImage(imageId))
+        }
+    }, [imageId, dispatch])
 
-        // Un producto sin foto no tiene imageId, no hay nada que pedir
-        if (!imageId) return
-
-        fetch('/images/' + imageId)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('No se pudo cargar la imagen ' + imageId)
-                }
-                return response.json()
-            })
-            .then(data => setBase64(data.file))
-            .catch(error => {
-                setFallo(true)
-                console.error(error)
-            })
-    }, [imageId])
-
-    // Los estilos van aca solo para que la foto no salga gigante.
-    // Cuando hagamos el CSS esto se mueve a una clase
-    const medidas = { width: tamanio, height: tamanio, objectFit: 'cover' }
+    // "tamanio" es el maximo: la foto ocupa el ancho que tenga disponible hasta
+    // ese tope, y siempre es cuadrada. El resto del estilo esta en .foto (App.css)
+    const medidas = { maxWidth: tamanio }
 
     if (!imageId || fallo) {
-        return <div style={medidas}>Sin foto</div>
+        return <div className="foto foto-vacia" style={medidas}>Sin foto</div>
     }
 
-    if (base64 === '') {
-        return <div style={medidas}>Cargando foto...</div>
+    if (base64 === undefined) {
+        return <div className="foto foto-vacia" style={medidas} aria-label="Cargando foto" />
     }
 
     return (
         <img
+            className="foto"
             src={'data:' + tipoDeImagen(base64) + ';base64,' + base64}
             alt={alt}
             style={medidas}

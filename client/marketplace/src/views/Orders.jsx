@@ -1,27 +1,29 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { api } from '../services/api'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchOrders } from '../redux/orderSlice'
+import { precio } from '../utils/precio'
 
 // "Mis pedidos": lista las compras del usuario logueado (GET /orders).
 // El back ya las devuelve de la mas nueva a la mas vieja
 function Orders() {
-    const [pedidos, setPedidos] = useState(null);
-    const [cargando, setCargando] = useState(true);
-    const [error, setError] = useState('');
+    const dispatch = useDispatch();
+    const { items: pedidos, loading, error, cargado } = useSelector((state) => state.orders);
 
+    // Se piden una sola vez. Los pedidos solo cambian cuando el usuario compra,
+    // y en ese caso el slice agrega el nuevo solo (ver checkout en orderSlice)
     useEffect(() => {
-        api('/orders')
-            .then(data => setPedidos(data))
-            .catch(error => setError(error.message))
-            .finally(() => setCargando(false));
-    }, [])
+        if (!cargado && !loading) {
+            dispatch(fetchOrders())
+        }
+    }, [dispatch])
 
-    if (cargando) return <p>Cargando pedidos...</p>
     if (error) return <p className="mensaje-error">{error}</p>
+    if (loading || !cargado) return <p>Cargando pedidos...</p>
     if (pedidos.length === 0) {
         return (
             <p className="mensaje-vacio">
-                Todavia no hiciste ningun pedido. <Link to="/">Ir al catalogo</Link>
+                Todavia no hiciste ningun pedido. <Link to="/catalogo">Ir al catálogo</Link>
             </p>
         )
     }
@@ -45,7 +47,7 @@ function Orders() {
                         </div>
 
                         <div className="pedido-derecha">
-                            <span className="pedido-total">${pedido.total}</span>
+                            <span className="pedido-total">{precio(pedido.total)}</span>
                             <Link to={'/pedidos/' + pedido.id} className="boton boton-secundario">
                                 Ver detalle
                             </Link>

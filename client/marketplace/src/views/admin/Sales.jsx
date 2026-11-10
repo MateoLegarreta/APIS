@@ -1,24 +1,23 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { api } from '../../services/api'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchAllOrders } from '../../redux/orderSlice'
 import MenuAdmin from '../../components/MenuAdmin';
+import { precio } from '../../utils/precio'
 
 
 // Ventas del local: todos los pedidos de todos los clientes (GET /orders/all).
 // Es la version admin de "Mis pedidos", y agrega quien compro
 function Sales() {
-    const [pedidos, setPedidos] = useState(null);
-    const [cargando, setCargando] = useState(true);
-    const [error, setError] = useState('');
+    const dispatch = useDispatch();
+    const { ventas: pedidos, ventasLoading: cargando, ventasError: error } = useSelector((state) => state.orders);
 
+    // Aca si se pide cada vez que se entra: otros clientes pueden haber comprado
     useEffect(() => {
-        api('/orders/all')
-            .then(data => setPedidos(data))
-            .catch(error => setError(error.message))
-            .finally(() => setCargando(false));
-    }, [])
+        dispatch(fetchAllOrders())
+    }, [dispatch])
 
-    if (cargando) return <p>Cargando ventas...</p>
+    if (cargando && pedidos.length === 0) return <p>Cargando ventas...</p>
     if (error) return <p className="mensaje-error">{error}</p>
     if (pedidos.length === 0) {
         return <p className="mensaje-vacio">Todavia no hay ventas registradas.</p>
@@ -47,7 +46,7 @@ function Sales() {
                         </div>
 
                         <div className="pedido-derecha">
-                            <span className="pedido-total">${pedido.total}</span>
+                            <span className="pedido-total">{precio(pedido.total)}</span>
                             <Link to={'/pedidos/' + pedido.id} className="boton boton-secundario">
                                 Ver detalle
                             </Link>

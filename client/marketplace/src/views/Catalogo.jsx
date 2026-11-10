@@ -1,134 +1,115 @@
 import { useState, useEffect } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
 import CardProduct from '../components/CardProduct'
-import { useLocation } from 'react-router-dom'
+import { fetchProducts } from '../redux/productSlice'
+import { fetchCategories } from '../redux/categorySlice'
 
-// Cuantos productos se muestran por pagina
-const TAMANIO = 6
-
+// Catalogo completo con filtros. Los filtros viven en la URL
+// (/catalogo?categoria=2&buscar=malbec): asi el buscador de la barra y los
+// "Ver todos" del inicio pueden mandar a un catalogo ya filtrado, y si se
+// comparte o refresca la pagina se ve lo mismo
 function Catalogo() {
-    const [productos, setProductos] = useState([])
-    const [categorias, setCategorias] = useState([])
+    const dispatch = useDispatch()
+    const [searchParams, setSearchParams] = useSearchParams()
 
-    const [busqueda, setBusqueda] = useState('')
-    const [categoriaId, setCategoriaId] = useState('')
-    const [precioMin, setPrecioMin] = useState('')
-    const [precioMax, setPrecioMax] = useState('')
+    // Todo lo del catalogo vive en el store: si ya se pidio, al volver a esta
+    // pantalla se muestra directo sin hacer otro pedido al backend
+    const { items: productos, loading, error, cargado, pagina, totalPaginas, filtros } =
+        useSelector((state) => state.products)
+    const { items: categorias, cargado: categoriasCargadas } = useSelector((state) => state.categories)
 
-    // Arranca en true porque apenas se abre la pantalla ya se esta pidiendo
-    const [cargando, setCargando] = useState(true)
+    const buscar = searchParams.get('buscar') ?? ''
+    const categoria = searchParams.get('categoria') ?? ''
+    const desde = searchParams.get('desde') ?? ''
+    const hasta = searchParams.get('hasta') ?? ''
 
-    // Vacio significa que no hubo ningun problema
-    const [error, setError] = useState('')
+    // Los campos de precio se aplican al apretar el boton, no con cada tecla
+    const [precioMin, setPrecioMin] = useState(desde)
+    const [precioMax, setPrecioMax] = useState(hasta)
 
-    const [pagina, setPagina] = useState(0)
-    const [totalPaginas, setTotalPaginas] = useState(0)
+    // Traduce la URL a los nombres que espera el back. Los vacios no se mandan.
+    // JSON.stringify lo convierte en texto para poder compararlo facil
+    const filtrosUrl = {}
+    if (buscar)    filtrosUrl.name = buscar
+    if (categoria) filtrosUrl.categoryId = categoria
+    if (desde)     filtrosUrl.priceMin = desde
+    if (hasta)     filtrosUrl.priceMax = hasta
+    const clave = JSON.stringify(filtrosUrl)
 
-    const location = useLocation()
-    const sesionIniciada = location.state?.sesionIniciada === true
+    // Se pide solo si nunca se pidio o si los filtros de la URL cambiaron.
+    // Si se vuelve al catalogo con los mismos filtros, se muestra lo guardado
+    // (incluida la pagina en la que estaba)
+    useEffect(() => {
+        if (!cargado || JSON.stringify(filtros) !== clave) {
+            dispatch(fetchProducts({ filtros: JSON.parse(clave), pagina: 0 }))
+        }
+    }, [clave, dispatch])
 
-    // Junta los filtros que esten completos. Los vacios no se mandan
-    // y el backend los ignora
-    function armarFiltros() {
-        const params = new URLSearchParams()
+    // Las categorias casi no cambian: se piden una sola vez
+    useEffect(() => {
+        if (!categoriasCargadas) {
+            dispatch(fetchCategories())
+        }
+    }, [categoriasCargadas, dispatch])
 
-        if (busqueda !== '')    params.append('name', busqueda)
-        if (categoriaId !== '') params.append('categoryId', categoriaId)
-        if (precioMin !== '')   params.append('priceMin', precioMin)
-        if (precioMax !== '')   params.append('priceMax', precioMax)
+    // Si la URL cambia (por ejemplo, desde la barra) los campos de precio la siguen
+    useEffect(() => {
+        setPrecioMin(desde)
+        setPrecioMax(hasta)
+    }, [desde, hasta])
 
-        return params
+    // Cambia un dato de la URL y deja los demas como estaban
+    function cambiarFiltro(nombre, valor) {
+        const nuevos = new URLSearchParams(searchParams)
+        if (valor) nuevos.set(nombre, valor)
+        else nuevos.delete(nombre)
+        setSearchParams(nuevos)
     }
 
-    // Hace el pedido y guarda los productos, cuantas paginas hay en total
-    // y en cual quedo parado el usuario
-    function pedirProductos(params, nroPagina) {
-        params.append('page', nroPagina)
-        params.append('size', TAMANIO)
-        setCargando(true)
-        setError('')
-
-        fetch('/products?' + params.toString())
-            .then(response => {
-                // fetch no falla solo cuando el servidor contesta mal: para el
-                // la respuesta llego igual. Hay que mirar el ok a mano
-                if (!response.ok) {
-                    throw new Error('El servidor respondio con un ' + response.status)
-                }
-                return response.json()
-            })
-            .then(data => {
-                setProductos(data.content)
-                setTotalPaginas(data.totalPages)
-                setPagina(nroPagina)
-            })
-            .catch(fallo => {
-                setError('No se pudieron cargar los productos. Fijate que el backend este levantado.')
-                console.error(fallo)
-            })
-            // finally corre siempre, haya andado o haya fallado
-            .finally(() => setCargando(false));
+    function aplicarPrecio(e) {
+        e.preventDefault()
+        const nuevos = new URLSearchParams(searchParams)
+        if (precioMin) nuevos.set('desde', precioMin)
+        else nuevos.delete('desde')
+        if (precioMax) nuevos.set('hasta', precioMax)
+        else nuevos.delete('hasta')
+        setSearchParams(nuevos)
     }
 
-    // Una busqueda nueva siempre arranca en la primera pagina
-    function buscarProductos() {
-        pedirProductos(armarFiltros(), 0)
-    }
-
-    // Cambia de pagina manteniendo los filtros que esten puestos
+    // Cambia de pagina con los filtros de la ultima busqueda
     function irAPagina(nroPagina) {
-        pedirProductos(armarFiltros(), nroPagina)
+        dispatch(fetchProducts({ filtros, pagina: nroPagina }))
+        window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
-    // Vacia los campos y pide todo de nuevo. No usa armarFiltros porque
-    // los setXxx de arriba todavia no se aplicaron en esta vuelta
-    function limpiarFiltros() {
-        setBusqueda('')
-        setCategoriaId('')
-        setPrecioMin('')
-        setPrecioMax('')
-        pedirProductos(new URLSearchParams(), 0)
-    }
+    const nombreCategoria = categorias.find((c) => String(c.id) === categoria)?.description
+    const hayFiltros = buscar || categoria || desde || hasta
 
-    // Al abrir la pantalla se pide la primera pagina, sin filtrar
-    useEffect(() => {
-        pedirProductos(new URLSearchParams(), 0)
-    }, [])
-
-    // Y tambien las categorias, para llenar el desplegable
-    useEffect(() => {
-        fetch('/categories')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('El servidor respondio con un ' + response.status)
-                }
-                return response.json()
-            })
-            .then(data => {
-                // Solo se guarda si de verdad vino una lista. Si se guardara
-                // cualquier otra cosa, el .map del desplegable reventaria y se
-                // caeria toda la pantalla, no solo el desplegable
-                setCategorias(Array.isArray(data.content) ? data.content : [])
-            })
-            // Aca no hace falta avisarle al usuario: si este pedido fallo, el de
-            // productos fallo tambien y ese ya muestra el cartel
-            .catch(fallo => console.error('Error al cargar las categorias:', fallo));
-    }, [])
+    let titulo = 'Todo el catálogo'
+    if (nombreCategoria) titulo = nombreCategoria
+    if (buscar) titulo = 'Resultados para “' + buscar + '”'
 
     // Tres situaciones distintas y una sola pantalla: conviene resolverlas
     // con returns tempranos en vez de ternarios anidados
     function mostrarProductos() {
-        if (cargando) {
-            return <p>Cargando productos...</p>
+        if (loading || !cargado) {
+            return <p className="mensaje-vacio">Cargando productos...</p>
         }
 
         // Va antes del vacio: si fallo el pedido no sabemos si hay productos
         // o no, y decir que no hay seria mentir
-        if (error !== '') {
-            return <p>{error}</p>
+        if (error) {
+            return <p className="mensaje-error">{error}</p>
         }
 
         if (productos.length === 0) {
-            return <p>No se encontraron productos.</p>
+            return (
+                <div className="mensaje-vacio">
+                    <p>No hay productos que coincidan con lo que elegiste.</p>
+                    <Link to="/catalogo" className="boton boton-secundario">Ver todo el catálogo</Link>
+                </div>
+            )
         }
 
         return (
@@ -142,70 +123,66 @@ function Catalogo() {
 
     return (
         <div className="catalogo">
-            {sesionIniciada && <p className="mensaje-ok"> Bienvenido ! Sesión iniciada correctamente.</p>}
-            <h1 className="titulo-seccion">Catálogo de Productos</h1>
-            <p className="subtitulo-seccion">Explora la variedad de nuestros productos disponibles para compra.</p>
-
-            <form className="filtros" onSubmit={(e) => { e.preventDefault(); buscarProductos(); }}>
-                <input
-                    type="text"
-                    placeholder="Buscar por nombre"
-                    value={busqueda}
-                    onChange={(e) => setBusqueda(e.target.value)}
-                />
-
-                <select value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)}>
-                    <option value="">Todas las categorías</option>
-                    {categorias.map(categoria => (
-                        <option key={categoria.id} value={categoria.id}>
-                            {categoria.description}
-                        </option>
+            <aside className="filtros" aria-label="Filtros">
+                <h2>Categorías</h2>
+                <ul className="filtros-categorias">
+                    <li>
+                        <button type="button" className={categoria === '' ? 'active' : ''}
+                                onClick={() => cambiarFiltro('categoria', '')}>
+                            Todas
+                        </button>
+                    </li>
+                    {categorias.map(c => (
+                        <li key={c.id}>
+                            <button type="button" className={categoria === String(c.id) ? 'active' : ''}
+                                    onClick={() => cambiarFiltro('categoria', String(c.id))}>
+                                {c.description}
+                            </button>
+                        </li>
                     ))}
-                </select>
+                </ul>
 
-                <input
-                    type="number"
-                    placeholder="Precio desde"
-                    value={precioMin}
-                    onChange={(e) => setPrecioMin(e.target.value)}
-                />
+                <h2>Precio</h2>
+                <form className="filtros-precio" onSubmit={aplicarPrecio}>
+                    <input type="number" min="0" placeholder="Desde" aria-label="Precio desde"
+                           value={precioMin} onChange={(e) => setPrecioMin(e.target.value)} />
+                    <input type="number" min="0" placeholder="Hasta" aria-label="Precio hasta"
+                           value={precioMax} onChange={(e) => setPrecioMax(e.target.value)} />
+                    <button type="submit" className="boton boton-secundario">Aplicar</button>
+                </form>
 
-                <input
-                    type="number"
-                    placeholder="Precio hasta"
-                    value={precioMax}
-                    onChange={(e) => setPrecioMax(e.target.value)}
-                />
+                {hayFiltros && <Link to="/catalogo" className="filtros-limpiar">Quitar filtros</Link>}
+            </aside>
 
-                <button type="submit" className="boton">Buscar</button>
-                <button type="button" className="boton boton-secundario" onClick={limpiarFiltros}>Limpiar</button>
-            </form>
+            <section className="catalogo-resultados">
+                <h1 className="catalogo-titulo">{titulo}</h1>
 
-            {mostrarProductos()}
+                {mostrarProductos()}
 
-            {/* Si el pedido fallo, totalPaginas quedo con el valor viejo:
-                mostrarlo seria ofrecer paginas que no sabemos si existen */}
-            {error === '' && totalPaginas > 1 && (
-                <div className="paginado">
-                    <button
-                        type="button"
-                        className="boton boton-secundario"
-                        onClick={() => irAPagina(pagina - 1)}
-                        disabled={pagina === 0}>
-                        Anterior
-                    </button>
+                {/* Si el pedido fallo, totalPaginas quedo con el valor viejo:
+                    mostrarlo seria ofrecer paginas que no sabemos si existen */}
+                {!error && cargado && totalPaginas > 1 && (
+                    <div className="paginado">
+                        <button
+                            type="button"
+                            className="boton boton-secundario"
+                            onClick={() => irAPagina(pagina - 1)}
+                            disabled={pagina === 0}>
+                            Anterior
+                        </button>
 
-                    <span>Página {pagina + 1} de {totalPaginas}</span>
+                        <span>Página {pagina + 1} de {totalPaginas}</span>
 
-                    <button
-                        type="button"
-                        className="boton boton-secundario"
-                        onClick={() => irAPagina(pagina + 1)}
-                        disabled={pagina >= totalPaginas - 1}>
-                        Siguiente
-                    </button>
-                </div>
-            )}
+                        <button
+                            type="button"
+                            className="boton boton-secundario"
+                            onClick={() => irAPagina(pagina + 1)}
+                            disabled={pagina >= totalPaginas - 1}>
+                            Siguiente
+                        </button>
+                    </div>
+                )}
+            </section>
         </div>
     );
 }

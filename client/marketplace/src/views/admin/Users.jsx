@@ -1,25 +1,24 @@
 import { useEffect, useState } from "react";
-import { api } from "../../services/api";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchUsers, changeUserStatus } from "../../redux/userSlice";
 import MenuAdmin from "../../components/MenuAdmin";
 
 // Listado de usuarios. No hay alta: los usuarios se crean desde el registro.
 // GET /users devuelve todos, activos y dados de baja, asi que van en una sola
 // tabla y cada fila muestra su estado
 function Users() {
-
-    const [usuarios, setUsuarios] = useState([])
-    const [cargando, setCargando] = useState(true)
-    const [error, setError] = useState('')
+    const dispatch = useDispatch()
+    const { items: usuarios, loading: cargando, error } = useSelector((state) => state.users)
     const [mensajeOk, setMensajeOk] = useState('')
+    // Error al dar de baja o reactivar. Va aparte para que la tabla siga a la vista
+    const [errorAccion, setErrorAccion] = useState('')
 
     useEffect(() => {
-        api('/users?size=100')
-            .then(data => setUsuarios(data.content))
-            .catch(error => setError(error.message))
-            .finally(() => setCargando(false))
-    }, [])
+        dispatch(fetchUsers())
+    }, [dispatch])
 
-    // Un solo boton para las dos acciones: manda el PUT con el active invertido
+    // Un solo boton para las dos acciones: el slice manda el PUT con el active invertido
+    // y reemplaza al usuario en la lista con lo que devuelve el back
     function cambiarEstado(usuario){
         const dandoDeBaja= usuario.active
         const accion = dandoDeBaja ? 'dar de baja' : 'reactivar'
@@ -27,26 +26,15 @@ function Users() {
         if (!window.confirm('Seguro queres ' + accion + ' a ' + usuario.email + '?')) return
 
         setMensajeOk('')
-        setError('')
+        setErrorAccion('')
 
-        api('/users/' + usuario.id, {
-            method: 'PUT',
-            body: JSON.stringify({
-                email: usuario.email,
-                name: usuario.name,
-                surname: usuario.surname,
-                active: !usuario.active
-            })
-        })
-
-        .then(actualizado => {
-            setUsuarios(usuarios.map(u => u.id === usuario.id ? actualizado : u))
-            setMensajeOk(dandoDeBaja ? 'Usuario dado de baja' : 'Usuario reactivado')
-        })
-        .catch(error => setError(error.message))
+        dispatch(changeUserStatus(usuario))
+            .unwrap()
+            .then(() => setMensajeOk(dandoDeBaja ? 'Usuario dado de baja' : 'Usuario reactivado'))
+            .catch(error => setErrorAccion(error.message))
     }
 
-    if (cargando) return <p>Cargando usuarios...</p>
+    if (cargando && usuarios.length === 0) return <p>Cargando usuarios...</p>
     if (error) return <p className="mensaje-error">{error}</p>
     if (usuarios.length === 0) return <p className="mensaje-vacio">No hay usuarios</p>
 
@@ -56,6 +44,7 @@ function Users() {
             <h1 className="titulo-seccion">Usuarios</h1>
 
             {mensajeOk && <p className="mensaje-ok">{mensajeOk}</p>}
+            {errorAccion && <p className="mensaje-error">{errorAccion}</p>}
 
             <table className="tabla">
                 <thead>

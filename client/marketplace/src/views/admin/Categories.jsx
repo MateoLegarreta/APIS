@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react'
-import { api } from '../../services/api'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchAdminCategories, saveCategory, changeCategoryStatus } from '../../redux/categorySlice'
 import MenuAdmin from '../../components/MenuAdmin'
 
 // ABM de categorias. Es el mismo patron que Products.jsx pero con un solo campo (description)
 function Categories() {
-    const [categorias, setCategorias] = useState([])
-    const [cargando, setCargando] = useState(true)
-    const [error, setError] = useState('')
+    const dispatch = useDispatch()
+    const { adminItems: categorias, adminLoading: cargando, adminError } = useSelector((state) => state.categories)
+    // Error de una accion (baja, reactivar). El de la lista viene del slice
+    const [errorAccion, setErrorAccion] = useState('')
+    const error = errorAccion || adminError
     const [mensajeOk, setMensajeOk] = useState('')
 
     const [mostrarForm, setMostrarForm] = useState(false)
@@ -22,13 +25,9 @@ function Categories() {
     // La lista que se administra. Se vuelve a pedir cada vez que se cambia entre
     // activas y dadas de baja
     useEffect(() => {
-        setCargando(true)
-        setError('')
-        api(verInactivas ? '/categories/inactive?size=100' : '/categories?size=100')
-            .then(data => setCategorias(data.content))
-            .catch(error => setError(error.message))
-            .finally(() => setCargando(false))
-    }, [verInactivas])
+        setErrorAccion('')
+        dispatch(fetchAdminCategories(verInactivas))
+    }, [verInactivas, dispatch])
 
     function limpiarFormulario() {
         setEditandoId(null)
@@ -43,13 +42,8 @@ function Categories() {
         setMostrarForm(true)
     }
 
-    // Alta y edicion comparten el formulario; si hay editandoId es una edicion (PUT)
-    function traducirErrorForm(mensaje) {
-        if (mensaje === 'Error 400') return 'Ya existe una categoria con esa descripcion'
-        if (mensaje === 'Error 404') return 'Esa categoria ya no existe'
-        return mensaje
-    }
-
+    // Alta y edicion comparten el formulario; si hay editandoId es una edicion (PUT).
+    // Los mensajes de error (400 = descripcion repetida, etc.) vienen del slice
     function handleGuardar() {
         setMensajeOk('')
         if (!descripcion.trim()) {
@@ -59,22 +53,14 @@ function Categories() {
         setErrorForm('')
         setGuardando(true)
 
-        api(editandoId ? '/categories/' + editandoId : '/categories', {
-            method: editandoId ? 'PUT' : 'POST',
-            body: JSON.stringify({ description: descripcion.trim() })
-        })
-            .then(guardada => {
-                if (editandoId) {
-                    setCategorias(categorias.map(c => c.id === editandoId ? guardada : c))
-                    setMensajeOk('Categoria actualizada con exito')
-                } else {
-                    setCategorias([...categorias, guardada])
-                    setMensajeOk('Categoria agregada con exito')
-                }
+        dispatch(saveCategory({ id: editandoId, description: descripcion.trim() }))
+            .unwrap()
+            .then(() => {
+                setMensajeOk(editandoId ? 'Categoria actualizada con exito' : 'Categoria agregada con exito')
                 setMostrarForm(false)
                 limpiarFormulario()
             })
-            .catch(error => setErrorForm(traducirErrorForm(error.message)))
+            .catch(error => setErrorForm(error.message))
             .finally(() => setGuardando(false))
     }
 
@@ -86,51 +72,26 @@ function Categories() {
         setMensajeOk('')
     }
 
-    // Si ya hay otra categoria activa con la misma descripcion, el back responde 400
-    function traducirErrorReactivar(mensaje) {
-        if (mensaje === 'Error 400') return 'No se pudo reactivar: ya existe otra categoria con esa descripcion'
-        if (mensaje === 'Error 404') return 'Esa categoria ya no existe'
-        return mensaje
-    }
-
-    // Vuelve a dar de alta una categoria: el mismo PUT de la baja, pero con active: true
-    function handleReactivar(categoria) {
+    // Baja y reactivacion: el mismo PUT de la edicion cambiando "active".
+    // El slice saca la categoria de la lista y trae el mensaje de error que
+    // corresponda (409 al dar de baja = todavia tiene productos activos)
+    function cambiarEstado(categoria, active, mensaje) {
         setMensajeOk('')
-        setError('')
+        setErrorAccion('')
 
-        api('/categories/' + categoria.id, {
-            method: 'PUT',
-            body: JSON.stringify({ description: categoria.description, active: true })
-        })
-            .then(() => {
-                setCategorias(categorias.filter(c => c.id !== categoria.id))
-                setMensajeOk('Categoria reactivada')
-            })
-            .catch(error => setError(traducirErrorReactivar(error.message)))
+        dispatch(changeCategoryStatus({ categoria, active }))
+            .unwrap()
+            .then(() => setMensajeOk(mensaje))
+            .catch(error => setErrorAccion(error.message))
     }
 
-    // El back no deja dar de baja una categoria que todavia tiene productos activos (409)
-    function traducirErrorBaja(mensaje) {
-        if (mensaje === 'Error 409') return 'No se puede dar de baja: la categoria todavia tiene productos activos'
-        if (mensaje === 'Error 404') return 'Esa categoria ya no existe'
-        return mensaje
+    function handleReactivar(categoria) {
+        cambiarEstado(categoria, true, 'Categoria reactivada')
     }
 
-    // La baja es logica: el mismo PUT de la edicion, pero con active: false
     function handleBaja(categoria) {
         if (!window.confirm('Seguro queres dar de baja "' + categoria.description + '"?')) return
-        setMensajeOk('')
-        setError('')
-
-        api('/categories/' + categoria.id, {
-            method: 'PUT',
-            body: JSON.stringify({ description: categoria.description, active: false })
-        })
-            .then(() => {
-                setCategorias(categorias.filter(c => c.id !== categoria.id))
-                setMensajeOk('Categoria dada de baja')
-            })
-            .catch(error => setError(traducirErrorBaja(error.message)))
+        cambiarEstado(categoria, false, 'Categoria dada de baja')
     }
 
     return (

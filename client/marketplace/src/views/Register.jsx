@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import { useAuth } from '../context/AuthContext'
-import {  Navigate, Link } from 'react-router-dom'
-
+import { useState, useEffect } from 'react'
+import { Navigate, Link, useLocation } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { register, limpiarErrorAuth } from '../redux/authSlice'
 
 function Register() {
     const [name, setName] = useState('');
@@ -9,58 +9,47 @@ function Register() {
     const [nickname, setNickname] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const { logueado, login, logout } = useAuth();
-    
+    // Error de validacion del formulario (antes de mandar nada)
+    const [errorForm, setErrorForm] = useState('');
+    const dispatch = useDispatch();
+    const logueado = useSelector((state) => state.auth.token !== null);
+    // Error que devolvio el back (por ejemplo, email repetido)
+    const errorAuth = useSelector((state) => state.auth.error);
+    const error = errorForm || errorAuth;
+
+    // Si vino desde el login con una pagina a la que volver, se la respeta
+    const location = useLocation();
+    const volverA = location.state?.volverA;
+
+    useEffect(() => {
+        dispatch(limpiarErrorAuth())
+    }, [dispatch])
 
     // Manda los datos al backend. Si sale bien, el backend devuelve un token
     // y el usuario queda con la sesion iniciada, igual que en el login
     function handleRegister() {
-        setError('');
+        setErrorForm('');
 
         if (!name.trim() || !surname.trim() || !nickname.trim() || !email.trim() || !password) {
-            setError('Completá todos los campos');
+            setErrorForm('Completá todos los campos');
             return;
         }
 
-        fetch('/api/v1/auth/register', {
-            method: 'POST',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({
-                name: name.trim(),
-                surname: surname.trim(),
-                nickname: nickname.trim(),
-                email: email.trim(),
-                password
-            })
-        })
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                }
-                else {
-                    // El backend responde 400 cuando el email ya esta registrado
-                    if (response.status === 400) {
-                        throw new Error('Ya existe un usuario con ese email');
-                    }
-                    throw new Error('Error en el registro');
-                }
-            })
-            .then(data => {
-                login(data.access_token, data.role);
-            })
-            .catch(error => {
-                setError(error.message);
-                console.error(error);
-            });
-            
-            
-            
-           
+        dispatch(register({
+            name: name.trim(),
+            surname: surname.trim(),
+            nickname: nickname.trim(),
+            email: email.trim(),
+            password
+        }))
     }
 
     // Con sesion iniciada no se muestra el formulario
-    if (logueado) return <Navigate to="/" replace state={{ sesionIniciada: true }} />;
+    if (logueado) {
+        return volverA
+            ? <Navigate to={volverA} replace />
+            : <Navigate to="/" replace state={{ sesionIniciada: true }} />;
+    }
 
     return (
         <>
@@ -90,7 +79,7 @@ function Register() {
                 <button className="boton" onClick={handleRegister}>
                     Registrarse
                 </button>
-                <Link to="/login" className="resumen-volver">¿Ya tenés cuenta? Iniciá sesión</Link>
+                <Link to="/login" state={location.state} className="resumen-volver">¿Ya tenés cuenta? Iniciá sesión</Link>
             </form>
         </>
     )

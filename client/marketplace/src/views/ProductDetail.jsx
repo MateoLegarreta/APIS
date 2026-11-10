@@ -1,62 +1,64 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import Foto from '../components/Foto'
-import { api } from '../services/api'
-import { useCart } from '../context/CartContext'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchProductById } from '../redux/productSlice'
+import { useAgregarAlCarrito } from '../hooks/useAgregarAlCarrito'
+import { precio } from '../utils/precio'
 
 // Muestra todos los datos de un producto, que lo pide al backend por su id
 function ProductDetail() {
     const { id } = useParams()
-    const [producto, setProducto] = useState(null)
-    const [error, setError] = useState('')
+    const dispatch = useDispatch()
     const [mensaje, setMensaje] = useState('')
     const [agregando, setAgregado] = useState(false)
     const [cantidad, setCantidad] = useState(1)
-    const { refrescarCarrito } = useCart()
+    const [esError, setEsError] = useState(false)
+    const agregar = useAgregarAlCarrito()
+
+    // Si se llego desde el catalogo o el inicio, el producto ya esta en el store
+    // y no hace falta pedirlo. Si no, se usa el que se pidio suelto por id.
+    // El id de la URL es texto y el del producto es numero: por eso String()
+    const delCatalogo = useSelector((state) =>
+        state.products.items.find((p) => String(p.id) === id)
+        ?? state.products.todos.find((p) => String(p.id) === id))
+    const detalle = useSelector((state) => state.products.detalle)
+    const detalleError = useSelector((state) => state.products.detalleError)
+
+    const producto = delCatalogo ?? (String(detalle?.id) === id ? detalle : null)
+    const error = delCatalogo ? null : detalleError
 
     useEffect(() => {
-        setError('')
-        setProducto(null)
+        if (!producto) {
+            dispatch(fetchProductById(id))
+        }
+    }, [id, dispatch])
 
-        fetch('/products/' + id)
-            .then(response => {
-                if (response.ok) {
-                    return response.json()
-                }
-                else {
-                    if (response.status === 404) {
-                        throw new Error('El producto no existe')
-                    }
-                    throw new Error('Error al cargar el producto')
-                }
-            })
-            .then(data => setProducto(data))
-            .catch(error => {
-                setError(error.message)
-                console.error(error)
-            })
-    }, [id])
-
-    // Agrega el producto al carrito con la cantidad elegida y actualiza el contador
+    // Agrega el producto al carrito con la cantidad elegida. El back devuelve el
+    // carrito actualizado y el slice lo guarda, asi el contador de la barra
+    // cambia solo sin volver a pedir el carrito.
+    // Si no hay sesion, el hook manda al login con un aviso
     function handleAgregar(){
         setMensaje('')
         setAgregado(true)
-        api('/cart/items', {
-            method: 'POST',
-            body: JSON.stringify({ productId: producto.id, quantity: cantidad })
-        })
-        .then(() => {
-            setMensaje('Producto agregado al carrito')
-            refrescarCarrito()})
-        .catch(error => setMensaje(error.message))
-        .finally(() => setAgregado(false))
+        agregar(producto.id, cantidad)
+            .then((agregado) => {
+                if (!agregado) return
+                setEsError(false)
+                setMensaje('Agregado al carrito.')
+            })
+            .catch(error => {
+                setEsError(true)
+                setMensaje(error.message)
+            })
+            .finally(() => setAgregado(false))
     }
 
     if (error) {
         return (
             <>
                 <p>{error}</p>
-                <Link to="/">Volver al catálogo</Link>
+                <Link to="/catalogo">Volver al catálogo</Link>
             </>
         )
     }
@@ -71,7 +73,7 @@ function ProductDetail() {
     return (
         <>
             <p className="breadcrumb">
-                <Link to="/">Todos los productos</Link> / {producto.name}
+                <Link to="/catalogo">Catálogo</Link> / {producto.name}
             </p>
 
             <div className="detalle">
@@ -84,12 +86,12 @@ function ProductDetail() {
 
                     {tieneDescuento && (
                         <p>
-                            <s className="detalle-precio-viejo">${producto.price}</s>{' '}
+                            <s className="detalle-precio-viejo">{precio(producto.price)}</s>{' '}
                             <span className="etiqueta-descuento">-{producto.discountPercentage}%</span>
                         </p>
                     )}
 
-                    <p className="detalle-precio">${producto.finalPrice}</p>
+                    <p className="detalle-precio">{precio(producto.finalPrice)}</p>
 
                     <div className="detalle-acciones">
                         <div className="cantidad">
@@ -118,7 +120,11 @@ function ProductDetail() {
                         </button>
                     </div>
 
-                    {mensaje && <p className="mensaje-ok">{mensaje}</p>}
+                    {mensaje && (
+                        <p className={esError ? 'mensaje-error' : 'mensaje-ok'}>
+                            {mensaje} {!esError && <Link to="/carrito">Ver el carrito</Link>}
+                        </p>
+                    )}
 
                     <hr className="detalle-separador" />
 

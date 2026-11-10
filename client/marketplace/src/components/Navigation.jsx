@@ -1,65 +1,116 @@
-import React, { useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import { useCart } from '../context/CartContext'
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { logout } from '../redux/authSlice'
+import { fetchCart } from '../redux/cartSlice'
+import { fetchCategories } from '../redux/categorySlice'
+import { IconoBuscar, IconoCarrito, IconoUsuario } from './Iconos'
 
-// Barra de navegacion. Los links cambian segun si hay sesion y segun el rol
+// Barra de navegacion en dos pisos: arriba la marca, el buscador y la cuenta;
+// abajo las categorias. Queda fija arriba al scrollear (position: sticky)
 function Navigation() {
-  const { logueado, logout, esAdmin } = useAuth()
-  const { cantidad, refrescarCarrito} = useCart()
+  const dispatch = useDispatch()
   const navigate = useNavigate()
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
+  const logueado = useSelector((state) => state.auth.token !== null)
+  const esAdmin = useSelector((state) => state.auth.rol === 'ADMIN')
+  const { items, cargado } = useSelector((state) => state.cart)
+  const categorias = useSelector((state) => state.categories.items)
+  const categoriasCargadas = useSelector((state) => state.categories.cargado)
 
-  // Al iniciar o cerrar sesion se recalcula el contador del carrito,
-  // asi no queda el numero del usuario anterior
+  // Arranca con lo que se busco, asi el texto no se borra al llegar al catalogo
+  const [busqueda, setBusqueda] = useState(searchParams.get('buscar') ?? '')
+
+  // reduce recorre las lineas sumando sus cantidades: dos botellas de una
+  // y tres de otra son cinco unidades, no dos lineas
+  const cantidad = items.reduce((suma, item) => suma + item.quantity, 0)
+
+  // El carrito se pide una sola vez, al iniciar sesion. Despues se mantiene
+  // actualizado solo, con lo que devuelve cada accion del carrito.
+  // El admin no compra, asi que no tiene carrito que pedir
   useEffect(() => {
-    refrescarCarrito()
-  }, [logueado])
+    if (logueado && !esAdmin && !cargado) {
+      dispatch(fetchCart())
+    }
+  }, [logueado, dispatch])
 
-  // Cierra la sesion y lleva al login
+  // Las categorias del segundo piso. Son las mismas del catalogo: se piden una vez
+  useEffect(() => {
+    if (!categoriasCargadas) {
+      dispatch(fetchCategories())
+    }
+  }, [categoriasCargadas, dispatch])
+
+  // La busqueda viaja en la URL (/catalogo?buscar=malbec) y el catalogo la lee de ahi
+  function buscar(e) {
+    e.preventDefault()
+    const texto = busqueda.trim()
+    navigate(texto ? '/catalogo?buscar=' + encodeURIComponent(texto) : '/catalogo')
+  }
+
+  // Cierra la sesion y lleva al login. logout tambien vacia el carrito del store
   function handleLogout() {
-    logout()
+    dispatch(logout())
     navigate('/login')
   }
 
   return (
-    <nav className="navbar">
-      <div className="navbar-interior">
-        <Link to='/' className="navbar-marca">La Bodega</Link>
+    <header className="navbar">
+      <div className="navbar-piso">
+        <Link to="/" className="navbar-marca">La Bodega</Link>
 
-        <ul className="navbar-links">
-            <li>
-                <Link to='/'>Catálogo</Link>
-            </li>
-            {/* El admin no compra: administra. Por eso no ve carrito ni pedidos */}
-            {logueado && !esAdmin && (
-              <li>
-                <Link to='/carrito'>Mi carrito ({cantidad})</Link>
-              </li>
+        <form className="buscador" role="search" onSubmit={buscar}>
+          <input
+            type="search"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            placeholder="Buscá un malbec, una IPA, un gin..."
+            aria-label="Buscar productos" />
+          <button type="submit" aria-label="Buscar">
+            <IconoBuscar tamanio={18} />
+          </button>
+        </form>
+
+        <nav className="navbar-cuenta" aria-label="Cuenta">
+          {esAdmin && <Link to="/admin/products" className="navbar-link">Panel</Link>}
+
+          {logueado && !esAdmin && <Link to="/pedidos" className="navbar-link">Mis pedidos</Link>}
+
+          {logueado
+            ? <button type="button" className="navbar-link" onClick={handleLogout}>Salir</button>
+            : (
+              <Link to="/login" className="navbar-link navbar-ingresar">
+                <IconoUsuario tamanio={20} /> Ingresar
+              </Link>
             )}
-            {logueado && !esAdmin && (
-              <li>
-                <Link to='/pedidos'>Mis pedidos</Link>
-              </li>
-            )}
-            {esAdmin && (
-              <li>
-                <Link to='/admin/products'>Panel</Link>
-              </li>
-            )}
-            {!logueado && (
-              <li>
-                <Link to='/register'>Registrarse</Link>
-              </li>
-            )}
-            {/* Las acciones de cuenta van siempre al final */}
-            <li>
-                {logueado
-                  ? <button onClick={handleLogout}>Cerrar sesión</button>
-                  : <Link to='/login'>Iniciar sesión</Link>}
-            </li>
-        </ul>
+
+          {/* El admin no compra: administra. Por eso no ve el carrito */}
+          {!esAdmin && (
+            <Link to="/carrito" className="navbar-carrito" aria-label={'Carrito, ' + cantidad + ' productos'}>
+              <IconoCarrito />
+              {cantidad > 0 && <span className="navbar-contador">{cantidad}</span>}
+            </Link>
+          )}
+        </nav>
       </div>
-    </nav>
+
+      <nav className="navbar-categorias" aria-label="Categorías">
+        <div className="navbar-categorias-interior">
+          {/* "Todo" se marca en el catalogo sin categoria elegida */}
+          <Link to="/catalogo"
+                className={location.pathname === '/catalogo' && !searchParams.get('categoria') ? 'active' : ''}>
+            Todo
+          </Link>
+          {categorias.map((categoria) => (
+            <Link key={categoria.id} to={'/catalogo?categoria=' + categoria.id}
+                  className={searchParams.get('categoria') === String(categoria.id) ? 'active' : ''}>
+              {categoria.description}
+            </Link>
+          ))}
+        </div>
+      </nav>
+    </header>
   )
 }
 
