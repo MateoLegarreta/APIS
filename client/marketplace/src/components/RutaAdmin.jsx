@@ -5,8 +5,8 @@ import { useSelector } from 'react-redux'
 // pero sin permisos ve un cartel, y el admin ve la pantalla.
 // Esto es solo la vista: el permiso real lo controla el back con @PreAuthorize
 function RutaAdmin({ children }) {
-    const logueado = useSelector((state) => state.auth.token !== null)
-    const esAdmin = useSelector((state) => state.auth.rol === 'ADMIN')
+    const logueado = useSelector((state) => state.user.token !== null)
+    const esAdmin = useSelector((state) => state.user.rol === 'ADMIN')
 
     if (!logueado) return <Navigate to="/login" replace />
     if (!esAdmin) return <p className="mensaje-vacio">Acceso denegado</p>

@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux'
 // Pie de pagina. Se ve en todas las pantallas porque va fuera de las Routes,
 // igual que la barra de navegacion
 function Footer() {
-    const logueado = useSelector((state) => state.auth.token !== null)
+    const logueado = useSelector((state) => state.user.token !== null)
 
     // El año sale solo, asi no hay que acordarse de tocarlo en enero
     const anio = new Date().getFullYear()

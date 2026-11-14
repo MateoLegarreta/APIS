@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchImage } from '../redux/imageSlice'
+import { fetchImage } from '../redux/productSlice'
 
 // El backend guarda solo los bytes de la foto, no guarda si es un jpg o un png.
 // Por suerte cada formato arranca con una firma propia que queda visible en los
@@ -17,8 +17,8 @@ function tipoDeImagen(base64) {
 // cartel en vez de una imagen rota
 function Foto({ imageId, alt, tamanio }) {
     const dispatch = useDispatch()
-    const base64 = useSelector((state) => state.images.porId[imageId])
-    const fallo = useSelector((state) => state.images.fallidas[imageId] === true)
+    const base64 = useSelector((state) => state.products.imagenes[imageId])
+    const fallo = useSelector((state) => state.products.imagenesFallidas[imageId] === true)
 
     useEffect(() => {
         // Un producto sin foto no tiene imageId, no hay nada que pedir.

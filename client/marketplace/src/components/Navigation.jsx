@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { logout } from '../redux/authSlice'
+import { logout } from '../redux/userSlice'
 import { fetchCart } from '../redux/cartSlice'
 import { fetchCategories } from '../redux/categorySlice'
 import { IconoBuscar, IconoCarrito, IconoUsuario } from './Iconos'
@@ -13,8 +13,8 @@ function Navigation() {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams] = useSearchParams()
-  const logueado = useSelector((state) => state.auth.token !== null)
-  const esAdmin = useSelector((state) => state.auth.rol === 'ADMIN')
+  const logueado = useSelector((state) => state.user.token !== null)
+  const esAdmin = useSelector((state) => state.user.rol === 'ADMIN')
   const { items, cargado } = useSelector((state) => state.cart)
   const categorias = useSelector((state) => state.categories.items)
   const categoriasCargadas = useSelector((state) => state.categories.cargado)

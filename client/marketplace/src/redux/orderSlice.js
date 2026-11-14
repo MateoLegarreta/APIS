@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import axios from 'axios'
 import { conToken, errorAMensaje } from './helpers'
-import { logout } from './authSlice'
+import { logout } from './userSlice'
 import { checkout } from './cartSlice'
 
 const URL = '/orders'

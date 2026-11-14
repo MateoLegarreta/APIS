@@ -36,6 +36,27 @@ export const fetchProductById = createAsyncThunk('products/fetchProductById', as
     }
 })
 
+// ---------- Fotos ----------
+
+// Pide la foto de un producto por su id. Las fotos ya pedidas quedan guardadas
+// en el store, asi la misma foto no se vuelve a pedir al pasar de pantalla.
+// "condition" se fija ANTES de hacer el pedido: si devuelve false, el thunk
+// no se ejecuta. Hace falta aca porque varias tarjetas pueden pedir la misma
+// foto al mismo tiempo (por ejemplo el mismo producto en el inicio y en el carrito)
+export const fetchImage = createAsyncThunk(
+    'products/fetchImage',
+    async (id) => {
+        const { data } = await axios.get(`/images/${id}`)
+        return data.file
+    },
+    {
+        condition: (id, { getState }) => {
+            const { imagenes, imagenesPedidas } = getState().products
+            return imagenes[id] === undefined && !imagenesPedidas[id]
+        },
+    },
+)
+
 // ---------- Panel de admin ----------
 
 // La lista completa (sin paginar) de activos o de dados de baja
@@ -116,6 +137,12 @@ const productSlice = createSlice({
         todos: [],
         todosLoading: false,
         todosCargado: false,
+        // Las fotos: id de la imagen -> la foto en Base64
+        imagenes: {},
+        // id -> true mientras se esta pidiendo, para no pedirla dos veces
+        imagenesPedidas: {},
+        // id -> true si fallo
+        imagenesFallidas: {},
         // El producto que se pidio suelto por id
         detalle: null,
         detalleLoading: false,
@@ -166,6 +193,18 @@ const productSlice = createSlice({
             .addCase(fetchProductById.rejected, (state, action) => {
                 state.detalleLoading = false
                 state.detalleError = action.error.message
+            })
+            // action.meta.arg es lo que se le paso al thunk: el id de la foto
+            .addCase(fetchImage.pending, (state, action) => {
+                state.imagenesPedidas[action.meta.arg] = true
+            })
+            .addCase(fetchImage.fulfilled, (state, action) => {
+                delete state.imagenesPedidas[action.meta.arg]
+                state.imagenes[action.meta.arg] = action.payload
+            })
+            .addCase(fetchImage.rejected, (state, action) => {
+                delete state.imagenesPedidas[action.meta.arg]
+                state.imagenesFallidas[action.meta.arg] = true
             })
             .addCase(fetchAdminProducts.pending, (state) => {
                 state.adminLoading = true

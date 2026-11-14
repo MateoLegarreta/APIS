@@ -8,7 +8,7 @@ import MenuAdmin from "../../components/MenuAdmin";
 // tabla y cada fila muestra su estado
 function Users() {
     const dispatch = useDispatch()
-    const { items: usuarios, loading: cargando, error } = useSelector((state) => state.users)
+    const { lista: usuarios, listaLoading: cargando, listaError: error } = useSelector((state) => state.user)
     const [mensajeOk, setMensajeOk] = useState('')
     // Error al dar de baja o reactivar. Va aparte para que la tabla siga a la vista
     const [errorAccion, setErrorAccion] = useState('')

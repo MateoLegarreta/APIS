@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Navigate, Link, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { register, limpiarErrorAuth } from '../redux/authSlice'
+import { register, limpiarError } from '../redux/userSlice'
 
 function Register() {
     const [name, setName] = useState('');
@@ -12,9 +12,9 @@ function Register() {
     // Error de validacion del formulario (antes de mandar nada)
     const [errorForm, setErrorForm] = useState('');
     const dispatch = useDispatch();
-    const logueado = useSelector((state) => state.auth.token !== null);
+    const logueado = useSelector((state) => state.user.token !== null);
     // Error que devolvio el back (por ejemplo, email repetido)
-    const errorAuth = useSelector((state) => state.auth.error);
+    const errorAuth = useSelector((state) => state.user.error);
     const error = errorForm || errorAuth;
 
     // Si vino desde el login con una pagina a la que volver, se la respeta
@@ -22,7 +22,7 @@ function Register() {
     const volverA = location.state?.volverA;
 
     useEffect(() => {
-        dispatch(limpiarErrorAuth())
+        dispatch(limpiarError())
     }, [dispatch])
 
     // Manda los datos al backend. Si sale bien, el backend devuelve un token

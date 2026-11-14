@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Navigate, Link, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { login, limpiarErrorAuth } from '../redux/authSlice'
+import { login, limpiarError } from '../redux/userSlice'
 
 function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const dispatch = useDispatch();
-    const logueado = useSelector((state) => state.auth.token !== null);
-    const { loading, error } = useSelector((state) => state.auth);
+    const logueado = useSelector((state) => state.user.token !== null);
+    const { loading, error } = useSelector((state) => state.user);
 
     // Si llego aca porque quiso agregar al carrito sin sesion, viene un aviso
     // y la pagina a la que hay que devolverlo despues de entrar
@@ -18,7 +18,7 @@ function Login() {
 
     // Si quedo un error de antes (por ejemplo del registro) no se muestra aca
     useEffect(() => {
-        dispatch(limpiarErrorAuth())
+        dispatch(limpiarError())
     }, [dispatch])
 
     // Pide el token al backend. Si las credenciales estan bien, el slice lo

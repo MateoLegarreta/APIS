@@ -1,6 +1,6 @@
 
 export function conToken(getState) {
-    return { headers: { Authorization: `Bearer ${getState().auth.token}` } }
+    return { headers: { Authorization: `Bearer ${getState().user.token}` } }
 }
 
 

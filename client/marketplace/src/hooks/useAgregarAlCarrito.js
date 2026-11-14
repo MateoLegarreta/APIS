@@ -11,7 +11,7 @@ export function useAgregarAlCarrito() {
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const location = useLocation()
-    const logueado = useSelector((state) => state.auth.token !== null)
+    const logueado = useSelector((state) => state.user.token !== null)
 
     // Devuelve una promesa: la pantalla decide que mostrar si sale bien o mal.
     // Si no hay sesion devuelve false y no hace el pedido
