@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import axios from 'axios'
 import { conToken, errorAMensaje } from './helpers'
 
+
 const URL_AUTH = '/api/v1/auth'
 const URL = '/users'
 
@@ -10,13 +11,11 @@ const URL = '/users'
 
 // ---------- Sesion ----------
 
-// Pide el token con email y contraseña. Se guarda tambien en localStorage
-// para que la sesion no se pierda al refrescar la pagina
+// Pide el token con email y contraseña. La sesion se guarda sola con
+// redux-persist , asi no se pierde al refrescar la pagina
 export const login = createAsyncThunk('user/login', async ({ email, password }) => {
     try {
         const { data } = await axios.post(`${URL_AUTH}/authenticate`, { email, password })
-        localStorage.setItem('token', data.access_token)
-        localStorage.setItem('rol', data.role)
         return data
     } catch (error) {
         throw errorAMensaje(error, { 403: 'Usuario o contraseña incorrectos' })
@@ -28,8 +27,6 @@ export const login = createAsyncThunk('user/login', async ({ email, password }) 
 export const register = createAsyncThunk('user/register', async (datos) => {
     try {
         const { data } = await axios.post(`${URL_AUTH}/register`, datos)
-        localStorage.setItem('token', data.access_token)
-        localStorage.setItem('rol', data.role)
         return data
     } catch (error) {
         throw errorAMensaje(error, { 400: 'Ya existe un usuario con ese email' })
@@ -66,9 +63,9 @@ export const changeUserStatus = createAsyncThunk('user/changeUserStatus', async 
 const userSlice = createSlice({
     name: 'user',
     initialState: {
-        // La sesion. Arranca con lo que habia guardado de antes
-        token: localStorage.getItem('token'),
-        rol: localStorage.getItem('rol'),
+        // La sesion. Arranca vacia y redux-persist la completa con lo guardado
+        token: null,
+        rol: null,
         loading: false,
         error: null,
         // La lista de usuarios del panel de admin
@@ -79,8 +76,6 @@ const userSlice = createSlice({
     reducers: {
         // Cerrar sesion no llama al back: solo se borra el token
         logout: (state) => {
-            localStorage.removeItem('token')
-            localStorage.removeItem('rol')
             state.token = null
             state.rol = null
             state.lista = []
