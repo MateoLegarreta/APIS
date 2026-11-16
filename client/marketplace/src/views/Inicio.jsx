@@ -23,23 +23,25 @@ function FilaCategoria({ categoria, productos }) {
         <section className="fila">
             <div className="fila-encabezado">
                 <h2>{categoria.description}</h2>
+                
                 <Link to={'/catalogo?categoria=' + categoria.id} className="fila-ver-todos">
                     Ver {productos.length === 1 ? 'el producto' : 'los ' + productos.length}
                 </Link>
-                <div className="fila-flechas">
-                    <button type="button" onClick={() => mover(-1)} aria-label="Anteriores">
-                        <IconoFlecha direccion="izquierda" tamanio={18} />
-                    </button>
-                    <button type="button" onClick={() => mover(1)} aria-label="Siguientes">
-                        <IconoFlecha tamanio={18} />
-                    </button>
-                </div>
             </div>
 
             <div className="fila-productos" ref={filaRef}>
                 {productos.map((producto) => (
                     <CardProduct key={producto.id} producto={producto} />
                 ))}
+            </div>
+
+            <div className="fila-flechas">
+                <button type="button" onClick={() => mover(-1)} aria-label="Anteriores">
+                    <IconoFlecha direccion="izquierda" tamanio={18} />
+                </button>
+                <button type="button" onClick={() => mover(1)} aria-label="Siguientes">
+                    <IconoFlecha tamanio={18} />
+                </button>
             </div>
         </section>
     )

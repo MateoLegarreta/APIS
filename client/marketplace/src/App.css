@@ -469,10 +469,12 @@ textarea:focus {
   color: var(--verde);
 }
 
+/* Debajo de las tarjetas, alineadas a la derecha */
 .fila-flechas {
-  margin-left: auto;
   display: flex;
+  justify-content: flex-end;
   gap: 0.4rem;
+  margin-top: 0.75rem;
 }
 
 .fila-flechas button {
