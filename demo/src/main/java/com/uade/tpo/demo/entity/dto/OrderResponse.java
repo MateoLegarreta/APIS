@@ -3,6 +3,7 @@ package com.uade.tpo.demo.entity.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.uade.tpo.demo.entity.DeliveryMethod;
 import com.uade.tpo.demo.entity.Order;
 import com.uade.tpo.demo.entity.User;
 
@@ -18,6 +19,9 @@ public class OrderResponse {
     private String buyerName;
     private String buyerEmail;
     private List<OrderItemResponse> items;
+    private DeliveryMethod deliveryMethod;
+    private String shippingAddress;
+    private Double shippingCost;
     private Double total;
 
     public static OrderResponse from(Order order) {
@@ -34,6 +38,11 @@ public class OrderResponse {
         response.setItems(order.getItems().stream()
                 .map(OrderItemResponse::from)
                 .toList());
+        // Los pedidos viejos no tienen datos de entrega: se muestran como retiro sin costo
+        response.setDeliveryMethod(order.getDeliveryMethod() == null
+                ? DeliveryMethod.PICKUP : order.getDeliveryMethod());
+        response.setShippingAddress(order.getShippingAddress());
+        response.setShippingCost(order.getShippingCost() == null ? 0.0 : order.getShippingCost());
         response.setTotal(order.getTotal());
         return response;
     }

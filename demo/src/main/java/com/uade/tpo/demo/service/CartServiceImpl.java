@@ -4,20 +4,24 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.uade.tpo.demo.entity.Cart;
 import com.uade.tpo.demo.entity.CartItem;
+import com.uade.tpo.demo.entity.DeliveryMethod;
 import com.uade.tpo.demo.entity.Order;
 import com.uade.tpo.demo.entity.OrderItem;
 import com.uade.tpo.demo.entity.Product;
 import com.uade.tpo.demo.entity.User;
+import com.uade.tpo.demo.entity.dto.CheckoutRequest;
 import com.uade.tpo.demo.exceptions.CartItemNotFoundException;
 import com.uade.tpo.demo.exceptions.CartNotFoundException;
 import com.uade.tpo.demo.exceptions.EmptyCartException;
 import com.uade.tpo.demo.exceptions.InsufficientStockException;
 import com.uade.tpo.demo.exceptions.InvalidQuantityException;
+import com.uade.tpo.demo.exceptions.MissingAddressException;
 import com.uade.tpo.demo.exceptions.ProductNotFoundException;
 import com.uade.tpo.demo.repository.CartRepository;
 import com.uade.tpo.demo.repository.OrderRepository;
@@ -39,6 +43,10 @@ public class CartServiceImpl implements CartService {
 
     @Autowired
     private OrderRepository orderRepository;
+
+    // Costo del envio a domicilio, configurado en application.properties
+    @Value("${application.shipping.cost}")
+    private Double shippingCost;
 
     // Trae el carrito del usuario, y si todavia no tiene uno le crea uno vacio
     @Override
@@ -140,8 +148,9 @@ public class CartServiceImpl implements CartService {
     // pedido con lo que habia en el carrito, y despues vacia el carrito
     @Override
     @Transactional
-    public Order checkout(Long userId)
-            throws CartNotFoundException, EmptyCartException, InsufficientStockException {
+    public Order checkout(Long userId, CheckoutRequest request)
+            throws CartNotFoundException, EmptyCartException, InsufficientStockException,
+            MissingAddressException {
 
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(CartNotFoundException::new);
@@ -161,6 +170,28 @@ public class CartServiceImpl implements CartService {
         order.setUser(user);
         order.setDate(LocalDateTime.now());
 
+        // Forma de entrega: si no la mandan, es retiro por el local (gratis)
+        DeliveryMethod deliveryMethod = request.getDeliveryMethod() == null
+                ? DeliveryMethod.PICKUP : request.getDeliveryMethod();
+        order.setDeliveryMethod(deliveryMethod);
+        order.setShippingCost(0.0);
+
+        if (deliveryMethod == DeliveryMethod.DELIVERY) {
+            // Se usa la direccion que mandaron, y si no la guardada en el usuario
+            String address = isBlank(request.getAddress()) ? user.getAddress() : request.getAddress().trim();
+            if (isBlank(address))
+                throw new MissingAddressException();
+
+            // Si el usuario no tenia direccion guardada, se le guarda esta para la proxima
+            if (isBlank(user.getAddress())) {
+                user.setAddress(address);
+                userRepository.save(user);
+            }
+
+            order.setShippingAddress(address);
+            order.setShippingCost(shippingCost);
+        }
+
         // 2) Descontar stock, armar los items del pedido y calcular el total
         double total = 0.0;
         for (CartItem item : cart.getItems()) {
@@ -178,7 +209,7 @@ public class CartServiceImpl implements CartService {
 
             total += product.getFinalPrice() * item.getQuantity();
         }
-        order.setTotal(total);
+        order.setTotal(total + order.getShippingCost());
 
         Order savedOrder = orderRepository.save(order);
 
@@ -187,6 +218,10 @@ public class CartServiceImpl implements CartService {
         cartRepository.save(cart);
 
         return savedOrder;
+    }
+
+    private static boolean isBlank(String texto) {
+        return texto == null || texto.isBlank();
     }
 
     // Busca el carrito del usuario, y si no tiene le crea uno nuevo vacio

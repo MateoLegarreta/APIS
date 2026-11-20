@@ -59,15 +59,17 @@ export const clearCart = createAsyncThunk('cart/clearCart', async (_, { getState
     }
 })
 
-// Crea el pedido con lo que hay en el carrito. Devuelve el pedido nuevo
-export const checkout = createAsyncThunk('cart/checkout', async (_, { getState }) => {
+// Crea el pedido con lo que hay en el carrito. Devuelve el pedido nuevo.
+// deliveryMethod es 'PICKUP' (retiro) o 'DELIVERY' (envio, con su address)
+export const checkout = createAsyncThunk('cart/checkout', async ({ deliveryMethod, address }, { getState }) => {
     try {
-        const { data } = await axios.post(`${URL}/checkout`, null, conToken(getState))
+        const { data } = await axios.post(`${URL}/checkout`, { deliveryMethod, address }, conToken(getState))
         return data
     } catch (error) {
         throw errorAMensaje(error, {
             409: 'Algun producto ya no tiene stock suficiente. Revisa las cantidades del carrito',
             400: 'El carrito esta vacio',
+            422: 'Para el envío a domicilio hace falta una dirección',
         })
     }
 })

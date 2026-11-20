@@ -33,6 +33,16 @@ export const register = createAsyncThunk('user/register', async (datos) => {
     }
 })
 
+// Los datos del usuario logueado (nombre, direccion, etc.)
+export const fetchPerfil = createAsyncThunk('user/fetchPerfil', async (_, { getState }) => {
+    try {
+        const { data } = await axios.get(`${URL}/me`, conToken(getState))
+        return data
+    } catch (error) {
+        throw errorAMensaje(error)
+    }
+})
+
 // ---------- Panel de admin ----------
 
 // Todos los usuarios, activos y dados de baja (solo admin)
@@ -66,6 +76,8 @@ const userSlice = createSlice({
         // La sesion. Arranca vacia y redux-persist la completa con lo guardado
         token: null,
         rol: null,
+        // Datos del usuario logueado. No se persiste: se pide cuando hace falta
+        perfil: null,
         loading: false,
         error: null,
         // La lista de usuarios del panel de admin
@@ -78,6 +90,7 @@ const userSlice = createSlice({
         logout: (state) => {
             state.token = null
             state.rol = null
+            state.perfil = null
             state.lista = []
         },
         // Para que el error de una pantalla no aparezca al entrar a la otra
@@ -112,6 +125,9 @@ const userSlice = createSlice({
             .addCase(register.rejected, (state, action) => {
                 state.loading = false
                 state.error = action.error.message
+            })
+            .addCase(fetchPerfil.fulfilled, (state, action) => {
+                state.perfil = action.payload
             })
             .addCase(fetchUsers.pending, (state) => {
                 state.listaLoading = true

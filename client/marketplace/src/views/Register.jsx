@@ -9,6 +9,7 @@ function Register() {
     const [nickname, setNickname] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [address, setAddress] = useState('');
     // Error de validacion del formulario (antes de mandar nada)
     const [errorForm, setErrorForm] = useState('');
     const dispatch = useDispatch();
@@ -30,7 +31,7 @@ function Register() {
     function handleRegister() {
         setErrorForm('');
 
-        if (!name.trim() || !surname.trim() || !nickname.trim() || !email.trim() || !password) {
+        if (!name.trim() || !surname.trim() || !nickname.trim() || !email.trim() || !password || !address.trim()) {
             setErrorForm('Completá todos los campos');
             return;
         }
@@ -40,7 +41,8 @@ function Register() {
             surname: surname.trim(),
             nickname: nickname.trim(),
             email: email.trim(),
-            password
+            password,
+            address: address.trim()
         }))
     }
 
@@ -76,6 +78,11 @@ function Register() {
                        type="password"
                        placeholder="Contraseña"
                        onChange={(e) => setPassword(e.target.value)} />
+                <input value={address}
+                       type="text"
+                       placeholder="Dirección (calle, número, piso, localidad)"
+                       autoComplete="street-address"
+                       onChange={(e) => setAddress(e.target.value)} />
                 <button className="boton" onClick={handleRegister}>
                     Registrarse
                 </button>

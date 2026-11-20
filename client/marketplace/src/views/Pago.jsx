@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { checkout } from '../redux/cartSlice'
+import { fetchPerfil } from '../redux/userSlice'
 import { precio } from '../utils/precio'
+import { RETIRO, ENVIO, COSTO_ENVIO } from '../utils/envio'
 
 // Tarjetas de prueba "guardadas" del usuario. Son numeros de prueba que no
 // sirven para pagar de verdad: el pago es simbolico
@@ -27,10 +29,31 @@ function Pago() {
     // 'otra' = el usuario escribe una tarjeta nueva
     const [elegida, setElegida] = useState('otra')
 
+    // Entrega: retiro por el local (gratis) o envio a domicilio (con costo)
+    const [entrega, setEntrega] = useState(RETIRO)
+    const [direccion, setDireccion] = useState('')
+    const perfil = useSelector((state) => state.user.perfil)
+
+    // Se piden los datos del usuario para completar la direccion con la que
+    // cargo al registrarse. Puede cambiarla para este pedido
+    useEffect(() => {
+        dispatch(fetchPerfil())
+    }, [dispatch])
+
+    useEffect(() => {
+        if (perfil?.address) setDireccion(perfil.address)
+    }, [perfil])
+
+    const costoEnvio = entrega === ENVIO ? COSTO_ENVIO : 0
+    const totalFinal = total + costoEnvio
+
     function confirmarCompra() {
           setError('')
           setOcupado(true)
-          dispatch(checkout())
+          dispatch(checkout({
+              deliveryMethod: entrega,
+              address: entrega === ENVIO ? direccion.trim() : null,
+          }))
               .unwrap()
               .then(pedido => {
                   navigate('/pedidos/' + pedido.id, { state: { recienCreado: true } })
@@ -58,6 +81,10 @@ function Pago() {
     }
 
     function handlePagar(){
+        if (entrega === ENVIO && direccion.trim() === '') {
+            setError('Completá la dirección de envío')
+            return
+        }
         const errorTarjeta = validarTarjeta()
         if(errorTarjeta){
             setError(errorTarjeta)
@@ -92,9 +119,43 @@ function Pago() {
         <form className="form-caja" onSubmit={(e) => { e.preventDefault(); handlePagar() }}>
               <div className="pago-total">
                   <span>Total a pagar</span>
-                  <strong>{precio(total)}</strong>
+                  <strong>{precio(totalFinal)}</strong>
+              </div>
+              <div className="resumen-fila">
+                  <span>Productos</span>
+                  <span>{precio(total)}</span>
+              </div>
+              <div className="resumen-fila">
+                  <span>Envío</span>
+                  <span>{costoEnvio === 0 ? 'Gratis' : precio(costoEnvio)}</span>
               </div>
               {error && <p className="mensaje-error">{error}</p>}
+
+              <p className="pago-seccion">Entrega</p>
+              <div className="tarjetas">
+                  <label className={'tarjeta-opcion' + (entrega === RETIRO ? ' elegida' : '')}>
+                      <input type="radio"
+                             name="entrega"
+                             checked={entrega === RETIRO}
+                             onChange={() => setEntrega(RETIRO)} />
+                      Retiro por el local (gratis)
+                  </label>
+                  <label className={'tarjeta-opcion' + (entrega === ENVIO ? ' elegida' : '')}>
+                      <input type="radio"
+                             name="entrega"
+                             checked={entrega === ENVIO}
+                             onChange={() => setEntrega(ENVIO)} />
+                      Envío a domicilio (+{precio(COSTO_ENVIO)})
+                  </label>
+              </div>
+              {entrega === ENVIO && (
+                  <input value={direccion}
+                         placeholder="Dirección de envío"
+                         autoComplete="street-address"
+                         onChange={(e) => setDireccion(e.target.value)} />
+              )}
+
+              <p className="pago-seccion">Tarjeta</p>
               <div className="tarjetas">
                   {TARJETAS.map((tarjeta) => (
                       <label key={tarjeta.id}
@@ -133,7 +194,7 @@ function Pago() {
                      maxLength={3}
                      onChange={(e) => setCvv(e.target.value)} />
               <button type="submit" className="boton" disabled={ocupado}>
-                  {ocupado ? 'Procesando pago...' : 'Pagar ' + precio(total)}
+                  {ocupado ? 'Procesando pago...' : 'Pagar ' + precio(totalFinal)}
               </button>
           </form>
         </>

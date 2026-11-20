@@ -42,6 +42,10 @@ public class User implements UserDetails {
     private String surname;
     @Column(unique = true)
     private String nickname;
+    // Direccion de su casa, se usa para el envio a domicilio.
+    // Puede estar vacia en los usuarios creados antes de que existiera
+    @Column
+    private String address;
 
     @JsonIgnore
     @OneToMany(mappedBy = "user")

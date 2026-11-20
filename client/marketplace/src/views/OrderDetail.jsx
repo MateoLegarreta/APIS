@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { fetchOrderById } from '../redux/orderSlice'
 import Foto from '../components/Foto'
 import { precio } from '../utils/precio'
+import { ENVIO } from '../utils/envio'
 
 // Detalle de un pedido. El precio de cada linea es el que se pago ese dia,
 // no el actual del producto
@@ -67,6 +68,15 @@ function OrderDetail() {
                     <span className="pedido-total">{precio(item.subtotal)}</span>
                 </div>
             ))}
+
+            <div className="resumen-fila pedido-entrega">
+                <span>
+                    {pedido.deliveryMethod === ENVIO
+                        ? 'Envío a ' + pedido.shippingAddress
+                        : 'Retiro por el local'}
+                </span>
+                <span>{pedido.shippingCost ? precio(pedido.shippingCost) : 'Gratis'}</span>
+            </div>
 
             <div className="resumen-total">
                 <span>Total</span>

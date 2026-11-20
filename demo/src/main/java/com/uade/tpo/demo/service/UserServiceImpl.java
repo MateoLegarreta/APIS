@@ -51,6 +51,8 @@ public class UserServiceImpl implements UserService {
         user.setEmail(userRequest.getEmail());
         user.setName(userRequest.getName());
         user.setSurname(userRequest.getSurname());
+        if (userRequest.getAddress() != null)
+            user.setAddress(userRequest.getAddress());
         // Permite dar de baja o volver a dar de alta al usuario
         if (userRequest.getActive() != null)
             user.setActive(userRequest.getActive());

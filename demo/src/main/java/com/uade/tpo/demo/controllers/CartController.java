@@ -17,6 +17,7 @@ import com.uade.tpo.demo.entity.Order;
 import com.uade.tpo.demo.entity.User;
 import com.uade.tpo.demo.entity.dto.AddCartItemRequest;
 import com.uade.tpo.demo.entity.dto.CartResponse;
+import com.uade.tpo.demo.entity.dto.CheckoutRequest;
 import com.uade.tpo.demo.entity.dto.MessageResponse;
 import com.uade.tpo.demo.entity.dto.OrderResponse;
 import com.uade.tpo.demo.entity.dto.UpdateCartItemRequest;
@@ -25,6 +26,7 @@ import com.uade.tpo.demo.exceptions.CartNotFoundException;
 import com.uade.tpo.demo.exceptions.EmptyCartException;
 import com.uade.tpo.demo.exceptions.InsufficientStockException;
 import com.uade.tpo.demo.exceptions.InvalidQuantityException;
+import com.uade.tpo.demo.exceptions.MissingAddressException;
 import com.uade.tpo.demo.exceptions.ProductNotFoundException;
 import com.uade.tpo.demo.service.CartService;
 
@@ -86,12 +88,16 @@ public class CartController {
         return ResponseEntity.ok(new MessageResponse("Carrito vaciado"));
     }
 
-    // Confirma la compra: crea el pedido con lo que hay en el carrito y despues lo vacia
+    // Confirma la compra: crea el pedido con lo que hay en el carrito y despues lo vacia.
+    // El body es opcional: sin body se toma como retiro por el local
     @PostMapping("/checkout")
-    public ResponseEntity<OrderResponse> checkout(@AuthenticationPrincipal User user)
-            throws CartNotFoundException, EmptyCartException, InsufficientStockException {
+    public ResponseEntity<OrderResponse> checkout(
+            @AuthenticationPrincipal User user,
+            @RequestBody(required = false) CheckoutRequest request)
+            throws CartNotFoundException, EmptyCartException, InsufficientStockException,
+            MissingAddressException {
 
-        Order order = cartService.checkout(user.getId());
+        Order order = cartService.checkout(user.getId(), request == null ? new CheckoutRequest() : request);
         return ResponseEntity.ok(OrderResponse.from(order));
     }
 }
